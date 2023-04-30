@@ -83,12 +83,16 @@ namespace Client
                 catch
                 {
                     logs.AppendText("Could not connect to the server. \n");
+                     connectButton.Enabled = true;
+
                 }
 
             }
             else
             {
                 logs.AppendText("Check port & ip number. \n");
+                connectButton.Enabled = true;
+
             }
         }
 
@@ -120,6 +124,7 @@ namespace Client
 
                     string message = Encoding.Default.GetString(buffer);
                     message = message.Substring(0, message.IndexOf("\0"));
+    
 
                     string pubString = Encoding.Default.GetString(publicKey);
 
@@ -149,9 +154,11 @@ namespace Client
                     if (!terminating)
                     {
                         logs.AppendText("Connection has lost with the server. \n");
+                        connectButton.Enabled = true;
+
                     }
 
-                    clientSocket.Close();
+                    //clientSocket.Close();
                     connected = false;
                 }
             }

@@ -108,8 +108,9 @@ namespace Server
                     newClient.Receive(buffer);
 
                     string message = Encoding.Default.GetString(buffer);
-                    message = message.Substring(0, message.IndexOf("\0"));
+                    //message = message.Substring(0, message.IndexOf("\0"));
                     string privString = Encoding.Default.GetString(privateKey);
+                    //byte[] privByte = Encoding.Default.GetBytes(privString);
                     byte[] encrypted = decryptWithRSA(message, 3072, privString);
                     string credentials = Encoding.Default.GetString(encrypted);
 
