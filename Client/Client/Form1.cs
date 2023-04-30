@@ -31,9 +31,6 @@ namespace Client
             InitializeComponent();
 
             submitButton.Enabled = false;
-            radioButton1.Enabled = false;
-            radioButton2.Enabled = false;
-            radioButton3.Enabled = false;
         }
 
         private void radioButton1_CheckedChanged(object sender, EventArgs e)
