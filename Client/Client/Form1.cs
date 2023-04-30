@@ -99,7 +99,7 @@ namespace Client
 
             password = Encoding.Default.GetString(hashWithSHA512(password));
             string pubString = Encoding.Default.GetString(publicKey);
-            string credentials = (username + " " + password + " " + channel);
+            string credentials = username + " " + password + " " + channel;
             byte[] encryptedMsg = encryptWithRSA(credentials, 3072, pubString);
 
             clientSocket.Send(encryptedMsg);

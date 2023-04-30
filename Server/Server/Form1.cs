@@ -52,7 +52,7 @@ namespace Server
             if (Int32.TryParse(portText.Text, out Port))
             {
                 serverSocket.Bind(new IPEndPoint(IPAddress.Any,Port));
-                serverSocket.Listen(3);
+                serverSocket.Listen(5);
 
                 listening = true;
                 listenButton.Enabled = false;
@@ -78,8 +78,8 @@ namespace Server
                     clients.Add(newClient);
                     logs.AppendText("A client is connected. \n");
 
-                    Thread receiveThread = new Thread(new ThreadStart(ReceiveMessage));
-                    receiveThread.Start();
+                    Thread recieveThread = new Thread(() => ReceiveMessage(newClient));
+                    recieveThread.Start();
                 }
                 catch
                 {
@@ -95,9 +95,9 @@ namespace Server
             }
         }
 
-        private void ReceiveMessage()
+        private void ReceiveMessage(Socket newClient)
         {
-            Socket s = clients[clients.Count - 1]; //client that is newly added
+            // newClient is the client that is newly added
             bool connected = true;
 
             while (!terminating && connected)
@@ -105,7 +105,7 @@ namespace Server
                 try
                 {
                     Byte[] buffer = new Byte[64];
-                    s.Receive(buffer);
+                    newClient.Receive(buffer);
 
                     string message = Encoding.Default.GetString(buffer);
                     message = message.Substring(0, message.IndexOf("\0"));
@@ -131,14 +131,14 @@ namespace Server
                             messageToSend = "error";
                             buffer = Encoding.Default.GetBytes(messageToSend);
                             signWithRSA(messageToSend, 3072, privString);
-                            s.Send(buffer);
+                            newClient.Send(buffer);
                             break;
                         }
                     }
                     messageToSend = "success";
                     buffer = Encoding.Default.GetBytes(messageToSend);
                     signWithRSA(messageToSend, 3072, privString);
-                    s.Send(buffer);
+                    newClient.Send(buffer);
 
                     WriteCredentialsToFile(credentials);
                 }
@@ -149,8 +149,8 @@ namespace Server
                         logs.AppendText("A client is disconnected. \n");
                     }
 
-                    s.Close();
-                    clients.Remove(s);
+                    newClient.Close();
+                    clients.Remove(newClient);
                     connected = false;
                 }
             }
