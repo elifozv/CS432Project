@@ -37,7 +37,7 @@ namespace Client
         {
             if (radioButton1.Checked)
             {
-                MessageBox.Show("You chose IF100 channel. Are you sure? \n");
+                logs.AppendText("You chose IF100 channel. Are you sure? \n");
                 channel = "IF100";
             }
 
@@ -47,7 +47,7 @@ namespace Client
         {
             if (radioButton1.Checked)
             {
-                MessageBox.Show("You chose MATH101 channel. Are you sure? \n");
+                logs.AppendText("You chose MATH101 channel. Are you sure? \n");
                 channel = "MATH101";
             }
 
@@ -56,7 +56,7 @@ namespace Client
         {
             if (radioButton1.Checked)
             {
-                MessageBox.Show("You chose SPS101 channel. Are you sure? \n");
+                logs.AppendText("You chose SPS101 channel. Are you sure? \n");
                 channel = "SPS101";
             }
 
