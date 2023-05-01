@@ -97,7 +97,7 @@ namespace Server
 
         private void ReceiveMessage(Socket newClient)
         {
-            Socket s = clients[clients.Count - 1]; //client that is newly added
+            Socket s = newClient;
             bool connected = true;
 
             while (!terminating && connected)
