@@ -78,7 +78,7 @@ namespace Server
                     clients.Add(newClient);
                     logs.AppendText("A client is connected. \n");
 
-                    Thread recieveThread = new Thread(() => ReceiveMessage(newClient));
+                    Thread receiveThread = new Thread(new ThreadStart(ReceiveMessage(newClient));
                     recieveThread.Start();
                 }
                 catch
