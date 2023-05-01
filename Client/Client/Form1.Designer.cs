@@ -49,10 +49,10 @@ namespace Client
             // 
             // connectButton
             // 
-            this.connectButton.Location = new System.Drawing.Point(146, 273);
-            this.connectButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.connectButton.Location = new System.Drawing.Point(195, 339);
+            this.connectButton.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.connectButton.Name = "connectButton";
-            this.connectButton.Size = new System.Drawing.Size(130, 52);
+            this.connectButton.Size = new System.Drawing.Size(173, 64);
             this.connectButton.TabIndex = 0;
             this.connectButton.Text = "connect";
             this.connectButton.UseVisualStyleBackColor = true;
@@ -60,10 +60,10 @@ namespace Client
             // 
             // submitButton
             // 
-            this.submitButton.Location = new System.Drawing.Point(146, 714);
-            this.submitButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.submitButton.Location = new System.Drawing.Point(195, 885);
+            this.submitButton.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.submitButton.Name = "submitButton";
-            this.submitButton.Size = new System.Drawing.Size(130, 58);
+            this.submitButton.Size = new System.Drawing.Size(173, 72);
             this.submitButton.TabIndex = 1;
             this.submitButton.Text = "submit";
             this.submitButton.UseVisualStyleBackColor = true;
@@ -71,42 +71,42 @@ namespace Client
             // 
             // ipText
             // 
-            this.ipText.Location = new System.Drawing.Point(126, 114);
-            this.ipText.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.ipText.Location = new System.Drawing.Point(168, 141);
+            this.ipText.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.ipText.Name = "ipText";
-            this.ipText.Size = new System.Drawing.Size(148, 31);
+            this.ipText.Size = new System.Drawing.Size(196, 38);
             this.ipText.TabIndex = 2;
             // 
             // portText
             // 
-            this.portText.Location = new System.Drawing.Point(126, 188);
-            this.portText.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.portText.Location = new System.Drawing.Point(168, 233);
+            this.portText.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.portText.Name = "portText";
-            this.portText.Size = new System.Drawing.Size(148, 31);
+            this.portText.Size = new System.Drawing.Size(196, 38);
             this.portText.TabIndex = 3;
             // 
             // userText
             // 
-            this.userText.Location = new System.Drawing.Point(126, 362);
-            this.userText.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.userText.Location = new System.Drawing.Point(168, 449);
+            this.userText.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.userText.Name = "userText";
-            this.userText.Size = new System.Drawing.Size(148, 31);
+            this.userText.Size = new System.Drawing.Size(196, 38);
             this.userText.TabIndex = 4;
             // 
             // passText
             // 
-            this.passText.Location = new System.Drawing.Point(126, 445);
-            this.passText.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.passText.Location = new System.Drawing.Point(168, 552);
+            this.passText.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.passText.Name = "passText";
-            this.passText.Size = new System.Drawing.Size(148, 31);
+            this.passText.Size = new System.Drawing.Size(196, 38);
             this.passText.TabIndex = 5;
             // 
             // logs
             // 
-            this.logs.Location = new System.Drawing.Point(352, 95);
-            this.logs.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.logs.Location = new System.Drawing.Point(469, 118);
+            this.logs.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.logs.Name = "logs";
-            this.logs.Size = new System.Drawing.Size(456, 674);
+            this.logs.Size = new System.Drawing.Size(607, 835);
             this.logs.TabIndex = 6;
             this.logs.Text = "";
             // 
@@ -115,11 +115,11 @@ namespace Client
             this.groupBox1.Controls.Add(this.radioButton3);
             this.groupBox1.Controls.Add(this.radioButton2);
             this.groupBox1.Controls.Add(this.radioButton1);
-            this.groupBox1.Location = new System.Drawing.Point(44, 533);
-            this.groupBox1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.groupBox1.Location = new System.Drawing.Point(59, 661);
+            this.groupBox1.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Padding = new System.Windows.Forms.Padding(4, 5, 4, 5);
-            this.groupBox1.Size = new System.Drawing.Size(300, 156);
+            this.groupBox1.Padding = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            this.groupBox1.Size = new System.Drawing.Size(400, 193);
             this.groupBox1.TabIndex = 7;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Channels";
@@ -127,10 +127,10 @@ namespace Client
             // radioButton3
             // 
             this.radioButton3.AutoSize = true;
-            this.radioButton3.Location = new System.Drawing.Point(24, 117);
-            this.radioButton3.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.radioButton3.Location = new System.Drawing.Point(38, 157);
+            this.radioButton3.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.radioButton3.Name = "radioButton3";
-            this.radioButton3.Size = new System.Drawing.Size(121, 29);
+            this.radioButton3.Size = new System.Drawing.Size(157, 36);
             this.radioButton3.TabIndex = 2;
             this.radioButton3.TabStop = true;
             this.radioButton3.Text = "SPS101";
@@ -139,10 +139,10 @@ namespace Client
             // radioButton2
             // 
             this.radioButton2.AutoSize = true;
-            this.radioButton2.Location = new System.Drawing.Point(24, 75);
-            this.radioButton2.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.radioButton2.Location = new System.Drawing.Point(32, 93);
+            this.radioButton2.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.radioButton2.Name = "radioButton2";
-            this.radioButton2.Size = new System.Drawing.Size(139, 29);
+            this.radioButton2.Size = new System.Drawing.Size(179, 36);
             this.radioButton2.TabIndex = 1;
             this.radioButton2.TabStop = true;
             this.radioButton2.Text = "MATH101";
@@ -151,10 +151,10 @@ namespace Client
             // radioButton1
             // 
             this.radioButton1.AutoSize = true;
-            this.radioButton1.Location = new System.Drawing.Point(24, 33);
-            this.radioButton1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.radioButton1.Location = new System.Drawing.Point(32, 41);
+            this.radioButton1.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.radioButton1.Name = "radioButton1";
-            this.radioButton1.Size = new System.Drawing.Size(97, 29);
+            this.radioButton1.Size = new System.Drawing.Size(124, 36);
             this.radioButton1.TabIndex = 0;
             this.radioButton1.TabStop = true;
             this.radioButton1.Text = "IF100";
@@ -163,48 +163,48 @@ namespace Client
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(88, 119);
-            this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label1.Location = new System.Drawing.Point(117, 148);
+            this.label1.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(29, 25);
+            this.label1.Size = new System.Drawing.Size(38, 32);
             this.label1.TabIndex = 8;
             this.label1.Text = "ip";
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(68, 192);
-            this.label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label2.Location = new System.Drawing.Point(91, 238);
+            this.label2.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(49, 25);
+            this.label2.Size = new System.Drawing.Size(64, 32);
             this.label2.TabIndex = 9;
             this.label2.Text = "port";
             // 
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(14, 367);
-            this.label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label3.Location = new System.Drawing.Point(19, 455);
+            this.label3.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(107, 25);
+            this.label3.Size = new System.Drawing.Size(141, 32);
             this.label3.TabIndex = 10;
             this.label3.Text = "username";
             // 
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(18, 450);
-            this.label4.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label4.Location = new System.Drawing.Point(24, 558);
+            this.label4.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(104, 25);
+            this.label4.Size = new System.Drawing.Size(136, 32);
             this.label4.TabIndex = 11;
             this.label4.Text = "password";
             // 
             // Form1
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(12F, 25F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(16F, 31F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(795, 1042);
+            this.ClientSize = new System.Drawing.Size(1060, 1292);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
@@ -217,7 +217,7 @@ namespace Client
             this.Controls.Add(this.ipText);
             this.Controls.Add(this.submitButton);
             this.Controls.Add(this.connectButton);
-            this.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.Name = "Form1";
             this.Text = "Form1";
             this.groupBox1.ResumeLayout(false);

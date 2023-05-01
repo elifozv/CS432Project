@@ -104,7 +104,7 @@ namespace Server
             {
                 try
                 {
-                    Byte[] buffer = new Byte[64];
+                    Byte[] buffer = new Byte[384];
                     newClient.Receive(buffer);
 
                     string message = Encoding.Default.GetString(buffer);
@@ -126,22 +126,28 @@ namespace Server
                         string username = parts[0];
                         string password = parts[1];
                         string channel = parts[2];
-                        
+
                         if (username == _username)
                         {
                             messageToSend = "error";
+                            Byte[] buffer_sign = signWithRSA(messageToSend, 3072, privString);
+                            string send = generateHexStringFromByteArray(buffer_sign);
+                            Byte[] buffer_send_signed = new byte[64];
+                            buffer_send_signed = Encoding.Default.GetBytes(send);
+                            newClient.Send(buffer_send_signed);
+                            break;
+                        }
+                        else {
+                            messageToSend = "success";
                             buffer = Encoding.Default.GetBytes(messageToSend);
                             signWithRSA(messageToSend, 3072, privString);
                             newClient.Send(buffer);
-                            break;
-                        }
-                    }
-                    messageToSend = "success";
-                    buffer = Encoding.Default.GetBytes(messageToSend);
-                    signWithRSA(messageToSend, 3072, privString);
-                    newClient.Send(buffer);
 
-                    WriteCredentialsToFile(credentials);
+                            WriteCredentialsToFile(credentials); 
+                        }
+                        
+                    }
+                    
                 }
                 catch
                 {
@@ -173,6 +179,7 @@ namespace Server
             RSACryptoServiceProvider rsaObject = new RSACryptoServiceProvider(algoLength);
             // set RSA object with xml string
             rsaObject.FromXmlString(xmlStringKey);
+            rsaObject.KeySize = 3072;
             byte[] result = null;
 
             try
@@ -187,6 +194,11 @@ namespace Server
             return result;
         }
 
+        static string generateHexStringFromByteArray(byte[] input)
+        {
+            string hexString = BitConverter.ToString(input);
+            return hexString.Replace("-", "");
+        }
         // signing with RSA
         static byte[] signWithRSA(string input, int algoLength, string xmlString)
         {

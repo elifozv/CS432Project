@@ -100,6 +100,9 @@ namespace Client
         {
             string username = userText.Text;
             string password = passText.Text;
+            if (radioButton1.Checked) channel = "IF100";
+            else if (radioButton2.Checked) channel = "MATH101";
+            else if (radioButton3.Checked) channel = "SPS101";
 
             password = Encoding.Default.GetString(hashWithSHA512(password));
             string pubString = Encoding.Default.GetString(publicKey);
