@@ -120,26 +120,37 @@ namespace Server
                     string messageToSend;
                     string[] lines = File.ReadAllLines(filePath);
                     buffer = null;
-                    foreach (string line in lines)
-                    {
-                        string[] parts = line.Split(' ');
-                        string username = parts[0];
-                        string password = parts[1];
-                        string channel = parts[2];
-
-                        if (username == _username)
-                        {
-                            messageToSend = "error";
-                            Byte[] buffer_sign = signWithRSA(messageToSend, 3072, privString);
-                            string send = generateHexStringFromByteArray(buffer_sign);
-                            Byte[] buffer_send_signed = new byte[64];
-                            buffer_send_signed = Encoding.Default.GetBytes(send);
-                            newClient.Send(buffer_send_signed);
-                            break;
-                        }                       
-                    }
                     if (lines.Length == 0)
                     {
+                        messageToSend = "success";
+                        Byte[] buffer_sign = signWithRSA(messageToSend, 3072, privString);
+                        string send = generateHexStringFromByteArray(buffer_sign);
+                        Byte[] buffer_send_signed = new byte[64];
+                        buffer_send_signed = Encoding.Default.GetBytes(send);
+                        newClient.Send(buffer_send_signed);
+
+                        WriteCredentialsToFile(credentials);
+                    }
+                    else
+                    {
+                        foreach (string line in lines)
+                        {
+                            string[] parts = line.Split(' ');
+                            string username = parts[0];
+                            string password = parts[1];
+                            string channel = parts[2];
+
+                            if (username == _username)
+                            {
+                                messageToSend = "error";
+                                Byte[] buffer_sign = signWithRSA(messageToSend, 3072, privString);
+                                string send = generateHexStringFromByteArray(buffer_sign);
+                                Byte[] buffer_send_signed = new byte[64];
+                                buffer_send_signed = Encoding.Default.GetBytes(send);
+                                newClient.Send(buffer_send_signed);
+                                break;
+                            }                       
+                        }
                         messageToSend = "success";
                         Byte[] buffer_sign = signWithRSA(messageToSend, 3072, privString);
                         string send = generateHexStringFromByteArray(buffer_sign);
