@@ -33,35 +33,7 @@ namespace Client
             submitButton.Enabled = false;
         }
 
-        private void radioButton1_CheckedChanged(object sender, EventArgs e)
-        {
-            if (radioButton1.Checked)
-            {
-                logs.AppendText("You chose IF100 channel. Are you sure? \n");
-                channel = "IF100";
-            }
-
-        }
-
-        private void radioButton2_CheckedChanged(object sender, EventArgs e)
-        {
-            if (radioButton1.Checked)
-            {
-                logs.AppendText("You chose MATH101 channel. Are you sure? \n");
-                channel = "MATH101";
-            }
-
-        }
-        private void radioButton3_CheckedChanged(object sender, EventArgs e)
-        {
-            if (radioButton1.Checked)
-            {
-                logs.AppendText("You chose SPS101 channel. Are you sure? \n");
-                channel = "SPS101";
-            }
-
-        }
-
+       
         private void connectButton_Click(object sender, EventArgs e)
         {
             clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -106,10 +78,18 @@ namespace Client
             string credentials = username + " " + password + " " + channel;
             byte[] encryptedMsg = encryptWithRSA(credentials, 3072, pubString);
 
-            clientSocket.Send(encryptedMsg);
+            try
+            {
+                clientSocket.Send(encryptedMsg);
 
-            Thread receiveThread = new Thread(new ThreadStart(ReceiveMessage));
-            receiveThread.Start();
+                Thread receiveThread = new Thread(new ThreadStart(ReceiveMessage));
+                receiveThread.Start();
+                
+            }
+            catch
+            {
+                logs.AppendText("aasdfg");
+            }
 
         }
 
@@ -161,6 +141,7 @@ namespace Client
                     //clientSocket.Close();
                     connected = false;
                 }
+                
             }
 
         }
@@ -228,6 +209,39 @@ namespace Client
             return result;
         }
 
+        private void radioButton1_CheckedChanged_1(object sender, EventArgs e)
+        {
+            if (radioButton1.Checked)
+            {
+                radioButton2.Checked = false;
+                radioButton3.Checked = false;
+                logs.AppendText("You chose IF100 channel. Are you sure? \n");
+                channel = "IF100";
+            }
 
+        }
+
+        private void radioButton2_CheckedChanged_1(object sender, EventArgs e)
+        {
+            if (radioButton2.Checked)
+            {
+                radioButton1.Checked = false;
+                radioButton3.Checked = false;
+                logs.AppendText("You chose MATH101 channel. Are you sure? \n");
+                channel = "MATH101";
+            }
+        }
+
+        private void radioButton3_CheckedChanged_1(object sender, EventArgs e)
+        {
+            if (radioButton3.Checked)
+            {
+                radioButton1.Checked = false;
+                radioButton2.Checked = false;
+                logs.AppendText("You chose SPS101 channel. Are you sure? \n");
+                channel = "SPS101";
+            }
+
+        }
     }
 }
