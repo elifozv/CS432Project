@@ -99,7 +99,7 @@ namespace Client
             {
                 try
                 {
-                    Byte[] buffer = new Byte[64];
+                    Byte[] buffer = new Byte[384];
                     clientSocket.Receive(buffer);
 
                     string message = Encoding.Default.GetString(buffer);

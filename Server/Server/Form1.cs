@@ -17,6 +17,7 @@ namespace Server
 {
     public partial class Form1 : Form
     {
+        
         bool terminating = false;
         bool listening = false;
 
@@ -78,7 +79,7 @@ namespace Server
                     clients.Add(newClient);
                     logs.AppendText("A client is connected. \n");
 
-                    Thread receiveThread = new Thread(new ThreadStart(ReceiveMessage(newClient));
+                    Thread recieveThread = new Thread(() => ReceiveMessage(newClient));
                     recieveThread.Start();
                 }
                 catch
@@ -104,7 +105,7 @@ namespace Server
             {
                 try
                 {
-                    byte[] buffer = new byte[600];
+                    byte[] buffer = new byte[384];
                     s.Receive(buffer);
 
                     string message = Encoding.Default.GetString(buffer);
@@ -122,13 +123,14 @@ namespace Server
                     {
                         messageToSend = "success";
                         buffer = Encoding.Default.GetBytes(messageToSend);
-                        signWithRSA(messageToSend, 3072, privString);
-                        s.Send(buffer);
+                        byte[] signed = signWithRSA(messageToSend, 3072, privString);
+                        s.Send(signed);
 
                         WriteCredentialsToFile(credentials);
                     }
                     else
                     {
+                        bool ifError = false;
                         foreach (string line in lines)
                         {
                             string[] parts = line.Split(' ');
@@ -138,19 +140,23 @@ namespace Server
 
                             if (username == _username)
                             {
+                                ifError = true;
                                 messageToSend = "error";
                                 buffer = Encoding.Default.GetBytes(messageToSend);
-                                signWithRSA(messageToSend, 3072, privString);
-                                s.Send(buffer);
+                                byte[] signed = signWithRSA(messageToSend, 3072, privString);
+                                s.Send(signed);
                                 break;
                             }                       
                         }
-                        messageToSend = "success";
-                        buffer = Encoding.Default.GetBytes(messageToSend);
-                        signWithRSA(messageToSend, 3072, privString);
-                        s.Send(buffer);
+                        if (!ifError)
+                        {
+                             messageToSend = "success";
+                             buffer = Encoding.Default.GetBytes(messageToSend);
+                             byte[] signed = signWithRSA(messageToSend, 3072, privString);
+                             s.Send(signed);
 
-                        WriteCredentialsToFile(credentials);
+                             WriteCredentialsToFile(credentials);
+                        }
                     }
                     
                 }
