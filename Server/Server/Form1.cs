@@ -33,14 +33,14 @@ namespace Server
             this.FormClosing += new FormClosingEventHandler(Form1_FormClosing);
             InitializeComponent();
 
-            if (!File.Exists(filePath)) // Check if the file already exists
+            /*if (!File.Exists(filePath)) // Check if the file already exists
             {
                 // If the file doesn't exist, create it
                 using (FileStream fs = File.Create(filePath))
                 {
                     // Leave the stream open to allow further file operations
                 }
-            }
+            }*/
         }
 
 
@@ -97,15 +97,15 @@ namespace Server
 
         private void ReceiveMessage(Socket newClient)
         {
-            // newClient is the client that is newly added
+            Socket s = clients[clients.Count - 1]; //client that is newly added
             bool connected = true;
 
             while (!terminating && connected)
             {
                 try
                 {
-                    Byte[] buffer = new Byte[384];
-                    newClient.Receive(buffer);
+                    byte[] buffer = new byte[600];
+                    s.Receive(buffer);
 
                     string message = Encoding.Default.GetString(buffer);
                     //message = message.Substring(0, message.IndexOf("\0"));
@@ -123,11 +123,9 @@ namespace Server
                     if (lines.Length == 0)
                     {
                         messageToSend = "success";
-                        Byte[] buffer_sign = signWithRSA(messageToSend, 3072, privString);
-                        string send = generateHexStringFromByteArray(buffer_sign);
-                        Byte[] buffer_send_signed = new byte[64];
-                        buffer_send_signed = Encoding.Default.GetBytes(send);
-                        newClient.Send(buffer_send_signed);
+                        buffer = Encoding.Default.GetBytes(messageToSend);
+                        signWithRSA(messageToSend, 3072, privString);
+                        s.Send(buffer);
 
                         WriteCredentialsToFile(credentials);
                     }
@@ -143,20 +141,16 @@ namespace Server
                             if (username == _username)
                             {
                                 messageToSend = "error";
-                                Byte[] buffer_sign = signWithRSA(messageToSend, 3072, privString);
-                                string send = generateHexStringFromByteArray(buffer_sign);
-                                Byte[] buffer_send_signed = new byte[64];
-                                buffer_send_signed = Encoding.Default.GetBytes(send);
-                                newClient.Send(buffer_send_signed);
+                                buffer = Encoding.Default.GetBytes(messageToSend);
+                                signWithRSA(messageToSend, 3072, privString);
+                                s.Send(buffer);
                                 break;
                             }                       
                         }
                         messageToSend = "success";
-                        Byte[] buffer_sign = signWithRSA(messageToSend, 3072, privString);
-                        string send = generateHexStringFromByteArray(buffer_sign);
-                        Byte[] buffer_send_signed = new byte[64];
-                        buffer_send_signed = Encoding.Default.GetBytes(send);
-                        newClient.Send(buffer_send_signed);
+                        buffer = Encoding.Default.GetBytes(messageToSend);
+                        signWithRSA(messageToSend, 3072, privString);
+                        s.Send(buffer);
 
                         WriteCredentialsToFile(credentials);
                     }
@@ -169,8 +163,8 @@ namespace Server
                         logs.AppendText("A client is disconnected. \n");
                     }
 
-                    newClient.Close();
-                    clients.Remove(newClient);
+                    s.Close();
+                    clients.Remove(s);
                     connected = false;
                 }
             }
