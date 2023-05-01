@@ -136,16 +136,18 @@ namespace Server
                             buffer_send_signed = Encoding.Default.GetBytes(send);
                             newClient.Send(buffer_send_signed);
                             break;
-                        }
-                        else {
-                            messageToSend = "success";
-                            buffer = Encoding.Default.GetBytes(messageToSend);
-                            signWithRSA(messageToSend, 3072, privString);
-                            newClient.Send(buffer);
+                        }                       
+                    }
+                    if (lines.Length == 0)
+                    {
+                        messageToSend = "success";
+                        Byte[] buffer_sign = signWithRSA(messageToSend, 3072, privString);
+                        string send = generateHexStringFromByteArray(buffer_sign);
+                        Byte[] buffer_send_signed = new byte[64];
+                        buffer_send_signed = Encoding.Default.GetBytes(send);
+                        newClient.Send(buffer_send_signed);
 
-                            WriteCredentialsToFile(credentials); 
-                        }
-                        
+                        WriteCredentialsToFile(credentials);
                     }
                     
                 }
