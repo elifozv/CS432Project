@@ -85,7 +85,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="server_enc_dec_pub_prv.txt" />
-    <Content Include="server_sign_verify_pub_prv.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -82,13 +82,13 @@ namespace Client
             {
                 clientSocket.Send(encryptedMsg);
 
-                Thread receiveThread = new Thread(new ThreadStart(ReceiveMessage));
+                Thread receiveThread = new Thread(ReceiveMessage);
                 receiveThread.Start();
                 
             }
             catch
             {
-                logs.AppendText("aasdfg");
+                logs.AppendText("The encrypted message couldn't be sent");
             }
 
         }
@@ -103,7 +103,7 @@ namespace Client
                     clientSocket.Receive(buffer);
 
                     string message = Encoding.Default.GetString(buffer);
-                    message = message.Substring(0, message.IndexOf("\0"));
+                    //message = message.Substring(0, message.IndexOf("\0"));
     
 
                     string pubString = Encoding.Default.GetString(publicKey);
@@ -127,6 +127,10 @@ namespace Client
                             // (you could add this logic in the submitButton_Click method)
                         }
 
+                    }
+                    else
+                    {
+                        logs.AppendText("Couldn't verify the signed message\n");
                     }
                 }
                 catch
