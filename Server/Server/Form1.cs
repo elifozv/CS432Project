@@ -98,7 +98,7 @@ namespace Server
 
         private void ReceiveMessage(Socket newClient)
         {
-            Socket s = newClient;
+         
             bool connected = true;
 
             while (!terminating && connected)
@@ -106,7 +106,7 @@ namespace Server
                 try
                 {
                     byte[] buffer = new byte[384];
-                    s.Receive(buffer);
+                    newClient.Receive(buffer);
 
 
                     string message = Encoding.Default.GetString(buffer);
@@ -125,7 +125,7 @@ namespace Server
                         messageToSend = "success";
                         buffer = Encoding.Default.GetBytes(messageToSend);
                         byte[] signed = signWithRSA(messageToSend, 3072, privString);
-                        s.Send(signed);
+                        newClient.Send(signed);
 
                         WriteCredentialsToFile(credentials);
                     }
@@ -146,7 +146,7 @@ namespace Server
                                 messageToSend = "error";
                                 buffer = Encoding.Default.GetBytes(messageToSend);
                                 byte[] signed = signWithRSA(messageToSend, 3072, privString);
-                                s.Send(signed);
+                                newClient.Send(signed);
                                 break;
                             }                       
                         }
@@ -155,7 +155,7 @@ namespace Server
                              messageToSend = "success";
                              buffer = Encoding.Default.GetBytes(messageToSend);
                              byte[] signed = signWithRSA(messageToSend, 3072, privString);
-                             s.Send(signed);
+                             newClient.Send(signed);
 
                              WriteCredentialsToFile(credentials);
                         }
@@ -169,8 +169,8 @@ namespace Server
                         logs.AppendText("A client is disconnected. \n");
                     }
 
-                    s.Close();
-                    clients.Remove(s);
+                    newClient.Close();
+                    clients.Remove(newClient);
                     connected = false;
                 }
             }

@@ -19,7 +19,6 @@ namespace Client
         bool terminating = false;
         bool connected = false;
         Socket clientSocket;
-        string channel;
 
         byte[] publicKey = File.ReadAllBytes("server_enc_dec_pub.txt");
         byte[] signature = File.ReadAllBytes("server_sign_verify_pub.txt");
