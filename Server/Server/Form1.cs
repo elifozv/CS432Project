@@ -98,7 +98,7 @@ namespace Server
 
         private void ReceiveMessage(Socket newClient)
         {
-            Socket s = newClient;
+         
             bool connected = true;
 
             while (!terminating && connected)
@@ -106,7 +106,8 @@ namespace Server
                 try
                 {
                     byte[] buffer = new byte[384];
-                    s.Receive(buffer);
+                    newClient.Receive(buffer);
+
 
                     string message = Encoding.Default.GetString(buffer);
                     string privString = Encoding.Default.GetString(privateKey);
@@ -126,6 +127,10 @@ namespace Server
                         Byte[] buffer_sign = signWithRSA(messageToSend, 3072, server_signature);
                         newClient.Send(buffer_sign);
                         logs.AppendText("Send the success message signed\n");
+                        buffer = Encoding.Default.GetBytes(messageToSend);
+                        byte[] signed = signWithRSA(messageToSend, 3072, privString);
+                        newClient.Send(signed);
+
                         WriteCredentialsToFile(credentials);
                     }
                     else
@@ -133,28 +138,30 @@ namespace Server
                         bool ifError = false;
                         foreach (string line in lines)
                         {
-                            string[] parts = line.Split(' ');
-                            string username = parts[0];
-                            string password = parts[1];
-                            string channel = parts[2];
+                            String[] delimiters = { "username:", " password:", " channel:" };
+                            string[] parts = line.Split(delimiters, StringSplitOptions.None);
+                            string username = parts[1];
+                            string password = parts[2];
+                            string channel = parts[3];
 
-                            if (username == _username)
+                            if ("username:"+username == _username)
                             {
                                 ifError = true;
                                 messageToSend = "error";
-                                Byte[] buffer_sign = signWithRSA(messageToSend, 3072, server_signature);
-                                newClient.Send(buffer_sign);
-                                logs.AppendText("Send the error message signed\n");
+                                buffer = Encoding.Default.GetBytes(messageToSend);
+                                byte[] signed = signWithRSA(messageToSend, 3072, privString);
+                                newClient.Send(signed);
                                 break;
                             }                       
                         }
                         if (!ifError)
                         {
-                            messageToSend = "success";
-                            Byte[] buffer_sign = signWithRSA(messageToSend, 3072, server_signature);
-                            newClient.Send(buffer_sign);
-                            logs.AppendText("Send the success message signed\n");
-                            WriteCredentialsToFile(credentials);
+                             messageToSend = "success";
+                             buffer = Encoding.Default.GetBytes(messageToSend);
+                             byte[] signed = signWithRSA(messageToSend, 3072, privString);
+                             newClient.Send(signed);
+
+                             WriteCredentialsToFile(credentials);
                         }
                     }
                     
@@ -166,8 +173,8 @@ namespace Server
                         logs.AppendText("A client is disconnected. \n");
                     }
 
-                    s.Close();
-                    clients.Remove(s);
+                    newClient.Close();
+                    clients.Remove(newClient);
                     connected = false;
                 }
             }
@@ -222,7 +229,7 @@ namespace Server
 
             try
             {
-                result = rsaObject.SignData(byteInput, "SHA256");
+                result = rsaObject.SignData(byteInput, "SHA512");
             }
             catch (Exception e)
             {

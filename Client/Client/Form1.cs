@@ -19,7 +19,6 @@ namespace Client
         bool terminating = false;
         bool connected = false;
         Socket clientSocket;
-        string channel;
 
         byte[] publicKey = File.ReadAllBytes("server_enc_dec_pub.txt");
         byte[] signature = File.ReadAllBytes("server_sign_verify_pub.txt");
@@ -72,10 +71,14 @@ namespace Client
         {
             string username = userText.Text;
             string password = passText.Text;
+            string channel = "null";
+            if (radioButton1.Checked) channel = "IF100";
+            else if (radioButton2.Checked) channel = "MATH101";
+            else if (radioButton3.Checked) channel = "SPS101";
 
             password = Encoding.Default.GetString(hashWithSHA512(password));
             string pubString = Encoding.Default.GetString(publicKey);
-            string credentials = username + " " + password + " " + channel;
+            string credentials = "username:"+username + " password:" + password + " channel:" + channel;
             byte[] encryptedMsg = encryptWithRSA(credentials, 3072, pubString);
 
             try
@@ -203,7 +206,7 @@ namespace Client
 
             try
             {
-                result = rsaObject.VerifyData(byteInput, "SHA256", signature);
+                result = rsaObject.VerifyData(byteInput, "SHA512", signature);
             }
             catch (Exception e)
             {
