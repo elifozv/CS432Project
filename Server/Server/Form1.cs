@@ -108,6 +108,7 @@ namespace Server
                     byte[] buffer = new byte[384];
                     s.Receive(buffer);
 
+
                     string message = Encoding.Default.GetString(buffer);
                     string privString = Encoding.Default.GetString(privateKey);
                     byte[] encrypted = decryptWithRSA(message, 3072, privString);
@@ -133,12 +134,13 @@ namespace Server
                         bool ifError = false;
                         foreach (string line in lines)
                         {
-                            string[] parts = line.Split(' ');
-                            string username = parts[0];
-                            string password = parts[1];
-                            string channel = parts[2];
+                            String[] delimiters = { "username:", " password:", " channel:" };
+                            string[] parts = line.Split(delimiters, StringSplitOptions.None);
+                            string username = parts[1];
+                            string password = parts[2];
+                            string channel = parts[3];
 
-                            if (username == _username)
+                            if ("username:"+username == _username)
                             {
                                 ifError = true;
                                 messageToSend = "error";
@@ -223,7 +225,7 @@ namespace Server
 
             try
             {
-                result = rsaObject.SignData(byteInput, "SHA256");
+                result = rsaObject.SignData(byteInput, "SHA512");
             }
             catch (Exception e)
             {
