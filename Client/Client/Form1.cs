@@ -19,10 +19,12 @@ namespace Client
         bool terminating = false;
         bool connected = false;
         Socket clientSocket;
+
         string channel = "null";
 
         byte[] publicKey = File.ReadAllBytes("server_enc_dec_pub.txt");
         byte[] server_signature = File.ReadAllBytes("server_sign_verify_pub.txt");
+
 
         public Form1()
         {
@@ -78,8 +80,10 @@ namespace Client
 
             password = Encoding.Default.GetString(hashWithSHA512(password));
             string pubString = Encoding.Default.GetString(publicKey);
+
             string credentials = "username:"+username + "password:" + password + "channel:" + channel;
             byte[] encryptedMsg = encryptWithRSA(credentials, 3072, pubString);
+
 
             try
             {
@@ -163,31 +167,31 @@ namespace Client
             Environment.Exit(0);
         }
 
-        static byte[] hashWithSHA512(string input)
+        static Byte[] hashWithSHA512(string input)
         {
-            // convert input string to byte array
-            byte[] byteInput = Encoding.Default.GetBytes(input);
+            // convert input string to Byte array
+            Byte[] ByteInput = Encoding.Default.GetBytes(input);
             // create a hasher object from System.Security.Cryptography
             SHA512CryptoServiceProvider sha512Hasher = new SHA512CryptoServiceProvider();
-            // hash and save the resulting byte array
-            byte[] result = sha512Hasher.ComputeHash(byteInput);
+            // hash and save the resulting Byte array
+            Byte[] result = sha512Hasher.ComputeHash(ByteInput);
 
             return result;
         }
-        static byte[] encryptWithRSA(string input, int algoLength, string xmlStringKey)
+        static Byte[] encryptWithRSA(string input, int algoLength, string xmlStringKey)
         {
-            // convert input string to byte array
-            byte[] byteInput = Encoding.Default.GetBytes(input);
+            // convert input string to Byte array
+            Byte[] ByteInput = Encoding.Default.GetBytes(input);
             // create RSA object from System.Security.Cryptography
             RSACryptoServiceProvider rsaObject = new RSACryptoServiceProvider(algoLength);
             // set RSA object with xml string
             rsaObject.FromXmlString(xmlStringKey);
-            byte[] result = null;
+            Byte[] result = null;
 
             try
             {
                 //true flag is set to perform direct RSA encryption using OAEP padding
-                result = rsaObject.Encrypt(byteInput, true);
+                result = rsaObject.Encrypt(ByteInput, true);
             }
             catch (Exception e)
             {
@@ -197,10 +201,10 @@ namespace Client
             return result;
         }
 
-        static bool verifyWithRSA(string input, int algoLength, string xmlString, byte[] signature)
+        static bool verifyWithRSA(string input, int algoLength, string xmlString, Byte[] signature)
         {
-            // convert input string to byte array
-            byte[] byteInput = Encoding.Default.GetBytes(input);
+            // convert input string to Byte array
+            Byte[] ByteInput = Encoding.Default.GetBytes(input);
             // create RSA object from System.Security.Cryptography
             RSACryptoServiceProvider rsaObject = new RSACryptoServiceProvider(algoLength);
             // set RSA object with xml string
@@ -209,7 +213,7 @@ namespace Client
 
             try
             {
-                result = rsaObject.VerifyData(byteInput, "SHA512", signature);
+                result = rsaObject.VerifyData(ByteInput, "SHA512", signature);
             }
             catch (Exception e)
             {

@@ -21,10 +21,11 @@ namespace Server
         bool terminating = false;
         bool listening = false;
 
-        byte[] privateKey = File.ReadAllBytes("server_enc_dec_pub_prv.txt");
-        byte[] signature = File.ReadAllBytes("server_sign_verify_pub_prv.txt");
+        Byte[] privateKey = File.ReadAllBytes("server_enc_dec_pub_prv.txt");
+        Byte[] signature = File.ReadAllBytes("server_sign_verify_pub_prv.txt");
 
         string filePath = @"data/credentials.txt";
+
 
         Socket serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         List<Socket> clients = new List<Socket>();
@@ -105,14 +106,16 @@ namespace Server
             {
                 try
                 {
-                    byte[] buffer = new byte[384];
+                    Byte[] buffer = new Byte[384];
                     newClient.Receive(buffer);
 
 
                     string message = Encoding.Default.GetString(buffer);
                     string privString = Encoding.Default.GetString(privateKey);
+
                     string server_signature = Encoding.Default.GetString(signature);
                     byte[] encrypted = decryptWithRSA(message, 3072, privString);
+
                     string credentials = Encoding.Default.GetString(encrypted);
            
                     //string[] crArray = credentials.Split(' ');
@@ -134,10 +137,12 @@ namespace Server
                     {
                         messageToSend = "success";
                         buffer = Encoding.Default.GetBytes(messageToSend);
+
                         Byte[] buffer_sign = signWithRSA(messageToSend, 3072, server_signature);
                         newClient.Send(buffer);
                         newClient.Send(buffer_sign);
                         logs.AppendText("Send the success message signed\n");
+
 
                         WriteCredentialsToFile(credentials);
                     }
@@ -157,17 +162,20 @@ namespace Server
                                 ifError = true;
                                 messageToSend = "error";
                                 buffer = Encoding.Default.GetBytes(messageToSend);
+
                                 Byte[] buffer_sign = signWithRSA(messageToSend, 3072, server_signature);
                                 newClient.Send(buffer);
                                 newClient.Send(buffer_sign);
                                 logs.AppendText("The username already exists. Sending the error message.\n");
 
                                 WriteCredentialsToFile(credentials);
+
                                 break;
                             }                       
                         }
                         if (!ifError)
                         {
+
                             messageToSend = "success";
                             buffer = Encoding.Default.GetBytes(messageToSend);
                             Byte[] buffer_sign = signWithRSA(messageToSend, 3072, server_signature);
@@ -176,6 +184,7 @@ namespace Server
                             logs.AppendText("Sent the success message signed\n");
 
                             WriteCredentialsToFile(credentials);
+
                         }
                     }
                     
@@ -202,20 +211,20 @@ namespace Server
             }
         }
 
-        static byte[] decryptWithRSA(string input, int algoLength, string xmlStringKey)
+        static Byte[] decryptWithRSA(string input, int algoLength, string xmlStringKey)
         {
-            // convert input string to byte array
-            byte[] byteInput = Encoding.Default.GetBytes(input);
+            // convert input string to Byte array
+            Byte[] ByteInput = Encoding.Default.GetBytes(input);
             // create RSA object from System.Security.Cryptography
             RSACryptoServiceProvider rsaObject = new RSACryptoServiceProvider(algoLength);
             // set RSA object with xml string
             rsaObject.FromXmlString(xmlStringKey);
             rsaObject.KeySize = 3072;
-            byte[] result = null;
+            Byte[] result = null;
 
             try
             {
-                result = rsaObject.Decrypt(byteInput, true);
+                result = rsaObject.Decrypt(ByteInput, true);
             }
             catch (Exception e)
             {
@@ -225,25 +234,25 @@ namespace Server
             return result;
         }
 
-        static string generateHexStringFromByteArray(byte[] input)
+        static string generateHexStringFromByteArray(Byte[] input)
         {
             string hexString = BitConverter.ToString(input);
             return hexString.Replace("-", "");
         }
         // signing with RSA
-        static byte[] signWithRSA(string input, int algoLength, string xmlString)
+        static Byte[] signWithRSA(string input, int algoLength, string xmlString)
         {
-            // convert input string to byte array
-            byte[] byteInput = Encoding.Default.GetBytes(input);
+            // convert input string to Byte array
+            Byte[] ByteInput = Encoding.Default.GetBytes(input);
             // create RSA object from System.Security.Cryptography
             RSACryptoServiceProvider rsaObject = new RSACryptoServiceProvider(algoLength);
             // set RSA object with xml string
             rsaObject.FromXmlString(xmlString);
-            byte[] result = null;
+            Byte[] result = null;
 
             try
             {
-                result = rsaObject.SignData(byteInput, "SHA512");
+                result = rsaObject.SignData(ByteInput, "SHA512");
             }
             catch (Exception e)
             {
