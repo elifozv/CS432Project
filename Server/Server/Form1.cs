@@ -112,21 +112,37 @@ namespace Server
 
                     string message = Encoding.Default.GetString(buffer);
                     string privString = Encoding.Default.GetString(privateKey);
-                    Byte[] encrypted = decryptWithRSA(message, 3072, privString);
-                    string credentials = Encoding.Default.GetString(encrypted);
 
-                    string[] crArray = credentials.Split(' ');
-                    string _username = crArray[0];
+                    string server_signature = Encoding.Default.GetString(signature);
+                    byte[] encrypted = decryptWithRSA(message, 3072, privString);
+
+                    string credentials = Encoding.Default.GetString(encrypted);
+           
+                    //string[] crArray = credentials.Split(' ');
+                    int username_f_index = credentials.IndexOf("username:");
+                    int username_length = "username:".Length;
+                    int password_f_index = credentials.IndexOf("password:");
+                    int password_length = "password:".Length;
+                    int channel_f_index = credentials.IndexOf("channel:");
+                    int channel_length = "channel:".Length;
+
+                    string _username = credentials.Substring(username_f_index + username_length, (password_f_index - (username_f_index + username_length)));
+                    string _password = credentials.Substring(password_f_index + password_length, (channel_f_index - (password_f_index + password_length)));
+                    string _channel = credentials.Substring(channel_f_index + channel_length, (credentials.Length - (channel_f_index + channel_length)));
 
                     string messageToSend;
                     string[] lines = File.ReadAllLines(filePath);
                     buffer = null;
-                    if (lines.Length == 0)
+                    if (lines.Length == 0 || lines[0] == "")
                     {
                         messageToSend = "success";
                         buffer = Encoding.Default.GetBytes(messageToSend);
-                        Byte[] signed = signWithRSA(messageToSend, 3072, privString);
-                        newClient.Send(signed);
+
+                        Byte[] buffer_sign = signWithRSA(messageToSend, 3072, server_signature);
+                        newClient.Send(buffer);
+                        newClient.Send(buffer_sign);
+                        logs.AppendText("Send the success message signed\n");
+
 
                         WriteCredentialsToFile(credentials);
                     }
@@ -141,24 +157,34 @@ namespace Server
                             string password = parts[2];
                             string channel = parts[3];
 
-                            if ("username:"+username == _username)
+                            if (username == _username)
                             {
                                 ifError = true;
                                 messageToSend = "error";
                                 buffer = Encoding.Default.GetBytes(messageToSend);
-                                Byte[] signed = signWithRSA(messageToSend, 3072, privString);
-                                newClient.Send(signed);
+
+                                Byte[] buffer_sign = signWithRSA(messageToSend, 3072, server_signature);
+                                newClient.Send(buffer);
+                                newClient.Send(buffer_sign);
+                                logs.AppendText("The username already exists. Sending the error message.\n");
+
+                                WriteCredentialsToFile(credentials);
+
                                 break;
                             }                       
                         }
                         if (!ifError)
                         {
-                             messageToSend = "success";
-                             buffer = Encoding.Default.GetBytes(messageToSend);
-                             Byte[] signed = signWithRSA(messageToSend, 3072, privString);
-                             newClient.Send(signed);
 
-                             WriteCredentialsToFile(credentials);
+                            messageToSend = "success";
+                            buffer = Encoding.Default.GetBytes(messageToSend);
+                            Byte[] buffer_sign = signWithRSA(messageToSend, 3072, server_signature);
+                            newClient.Send(buffer);
+                            newClient.Send(buffer_sign);
+                            logs.AppendText("Sent the success message signed\n");
+
+                            WriteCredentialsToFile(credentials);
+
                         }
                     }
                     

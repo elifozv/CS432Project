@@ -19,10 +19,12 @@ namespace Client
         bool terminating = false;
         bool connected = false;
         Socket clientSocket;
-        string channel ="";
 
-        Byte[] publicKey = File.ReadAllBytes("server_enc_dec_pub.txt");
-        Byte[] signature = File.ReadAllBytes("server_sign_verify_pub.txt");
+        string channel = "null";
+
+        byte[] publicKey = File.ReadAllBytes("server_enc_dec_pub.txt");
+        byte[] server_signature = File.ReadAllBytes("server_sign_verify_pub.txt");
+
 
         public Form1()
         {
@@ -72,27 +74,28 @@ namespace Client
         {
             string username = userText.Text;
             string password = passText.Text;
-            string channel = "null";
             if (radioButton1.Checked) channel = "IF100";
             else if (radioButton2.Checked) channel = "MATH101";
             else if (radioButton3.Checked) channel = "SPS101";
 
             password = Encoding.Default.GetString(hashWithSHA512(password));
             string pubString = Encoding.Default.GetString(publicKey);
-            string credentials = "username:"+username + " password:" + password + " channel:" + channel;
-            Byte[] encryptedMsg = encryptWithRSA(credentials, 3072, pubString);
+
+            string credentials = "username:"+username + "password:" + password + "channel:" + channel;
+            byte[] encryptedMsg = encryptWithRSA(credentials, 3072, pubString);
+
 
             try
             {
                 clientSocket.Send(encryptedMsg);
-
-                Thread receiveThread = new Thread(new ThreadStart(ReceiveMessage));
+                logs.AppendText("Submit button clicked. Trying to enroll...\n");
+                Thread receiveThread = new Thread(ReceiveMessage);
                 receiveThread.Start();
                 
             }
             catch
             {
-                logs.AppendText("aasdfg");
+                logs.AppendText("The encrypted message couldn't be sent\n");
             }
 
         }
@@ -103,8 +106,11 @@ namespace Client
             {
                 try
                 {
-                    Byte[] buffer = new Byte[384];
+                    Byte[] buffer = new Byte[64];
+                    Byte[] signature_byte = new byte[384]; 
                     clientSocket.Receive(buffer);
+                    clientSocket.Receive(signature_byte);
+                    string server_pub = Encoding.Default.GetString(server_signature);
 
                     string message = Encoding.Default.GetString(buffer);
                     message = message.Substring(0, message.IndexOf("\0"));
@@ -112,7 +118,7 @@ namespace Client
 
                     string pubString = Encoding.Default.GetString(publicKey);
 
-                    if (verifyWithRSA(message, 3072, pubString, signature))
+                    if (verifyWithRSA(message, 3072,server_pub ,signature_byte))
                     {
                         if (message == "success")
                         {
@@ -131,6 +137,10 @@ namespace Client
                             // (you could add this logic in the submitButton_Click method)
                         }
 
+                    }
+                    else
+                    {
+                        logs.AppendText("Couldn't verify the signed message\n");
                     }
                 }
                 catch
