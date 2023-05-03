@@ -156,6 +156,42 @@ namespace Client
 
         }
 
+        private void auth_button_Click(object sender, EventArgs e)
+        {
+            string username = userText.Text;
+            string password = passText.Text;
+            Byte[] hashed_pass = hashWithSHA512(password);
+            Byte[] hashed_pass_quarter = new Byte[16];
+            Buffer.BlockCopy(hashed_pass, 0, hashed_pass_quarter, 0, 16);
+            string auth_start = "AUTH:" + username;
+            try
+            {
+                clientSocket.Send(Encoding.Default.GetBytes(auth_start));
+                logs.AppendText("Auth button clicked. Trying to authenticate...\n");
+                //Thread receiveThread = new Thread(ReceiveMessage);
+                //receiveThread.Start();
+                Byte[] buffer_rand_number = new Byte[16];
+                clientSocket.Receive(buffer_rand_number);
+                string rand = Encoding.Default.GetString(buffer_rand_number);
+                Byte[] hmac_result = applyHMACwithSHA512(rand, hashed_pass_quarter);
+                clientSocket.Send(hmac_result);
+                Byte[] buffer_result_auth = new Byte[64];
+                string buffer_auth_result = Encoding.Default.GetString(buffer_result_auth); //decrypt aes 128 in cbc mode
+                if (buffer_auth_result == "Authentication Successful")
+                {
+
+                }
+                else if (buffer_auth_result == "Authentication Unsuccessful")
+                {
+
+                }
+            }
+            catch
+            {
+                logs.AppendText("The encrypted message couldn't be sent\n");
+            }
+        }
+
         private void Form1_FormClosing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             connected = false;
@@ -215,6 +251,19 @@ namespace Client
             {
                 Console.WriteLine(e.Message);
             }
+
+            return result;
+        }
+
+        // HMAC with SHA-512
+        static byte[] applyHMACwithSHA512(string input, byte[] key)
+        {
+            // convert input string to byte array
+            byte[] byteInput = Encoding.Default.GetBytes(input);
+            // create HMAC applier object from System.Security.Cryptography
+            HMACSHA512 hmacSHA512 = new HMACSHA512(key);
+            // get the result of HMAC operation
+            byte[] result = hmacSHA512.ComputeHash(byteInput);
 
             return result;
         }
