@@ -110,14 +110,33 @@ namespace Server
                     byte[] buffer = new byte[384];
                     newClient.Receive(buffer);
 
-
                     string message = Encoding.Default.GetString(buffer);
                     string privString = Encoding.Default.GetString(privateKey);
                     string server_signature = Encoding.Default.GetString(signature);
+
+                    if (message.Substring(0,5) == "AUTH:")
+                    {
+                        //TODO check if username exists AUTH:USERNAMEEE seklinde bir msg geliyor
+                         byte[] randomNumber = new byte[16];
+                        using (RandomNumberGenerator rng = RandomNumberGenerator.Create())
+                        {
+                            rng.GetBytes(randomNumber);
+                        }
+                        string randomHex = BitConverter.ToString(randomNumber).Replace("-", "");
+                        Console.WriteLine("Random number: " + randomHex);
+                        byte[] buffer_hmac = new byte[384];
+                        newClient.Receive(buffer_hmac);
+                        string buffer_hmac_s = Encoding.Default.GetString(buffer_hmac);
+                        //hmac verify
+                        //encrypt in aes 128 
+                        newClient.Send(null); //send ok or no auth
+
+                    }
+                    else
+                    {
                     byte[] encrypted = decryptWithRSA(message, 3072, privString);
                     string credentials = Encoding.Default.GetString(encrypted);
            
-                    //string[] crArray = credentials.Split(' ');
                     int username_f_index = credentials.IndexOf("username:");
                     int username_length = "username:".Length;
                     int password_f_index = credentials.IndexOf("password:");
@@ -180,6 +199,8 @@ namespace Server
                             WriteCredentialsToFile(credentials);
                         }
                     }
+                    }
+
                     
                 }
                 catch
