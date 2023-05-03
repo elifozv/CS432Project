@@ -168,21 +168,29 @@ namespace Client
             {
                 clientSocket.Send(Encoding.Default.GetBytes(auth_start));
                 logs.AppendText("Auth button clicked. Trying to authenticate...\n");
-                //Thread receiveThread = new Thread(ReceiveMessage);
-                //receiveThread.Start();
                 Byte[] buffer_rand_number = new Byte[16];
                 clientSocket.Receive(buffer_rand_number);
                 string rand = Encoding.Default.GetString(buffer_rand_number);
                 Byte[] hmac_result = applyHMACwithSHA512(rand, hashed_pass_quarter);
                 clientSocket.Send(hmac_result);
                 Byte[] buffer_result_auth = new Byte[64];
+                Byte[] privkey = File.ReadAllBytes("server_enc_dec_pub.txt");
                 string buffer_auth_result = Encoding.Default.GetString(buffer_result_auth); //decrypt aes 128 in cbc mode
-                if (buffer_auth_result == "Authentication Successful")
+                Byte[] hashed_key_aes = new Byte[16];
+                Byte[] hashed_4 = new Byte[16];
+                Buffer.BlockCopy(hashed_pass, 0, hashed_key_aes, 0, 16);
+                Buffer.BlockCopy(hashed_pass, 16, hashed_4, 0, 16);
+                Byte[] decrypt = decryptWithAES128(buffer_auth_result, hashed_key_aes, hashed_4);
+                string buffer_decrypt_result = Encoding.Default.GetString(decrypt);
+        
+                if (buffer_decrypt_result == "Authentication Successful")
                 {
+                    logs.AppendText("Authentication Successful \n");
 
                 }
-                else if (buffer_auth_result == "Authentication Unsuccessful")
+                else
                 {
+                    logs.AppendText("Authentication Unsuccessful \n");
 
                 }
             }
@@ -228,6 +236,41 @@ namespace Client
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
+            }
+
+            return result;
+        }
+
+        static byte[] decryptWithAES128(string input, byte[] key, byte[] IV)
+        {
+            // convert input string to byte array
+            byte[] byteInput = Encoding.Default.GetBytes(input);
+
+            // create AES object from System.Security.Cryptography
+            RijndaelManaged aesObject = new RijndaelManaged();
+            // since we want to use AES-128
+            aesObject.KeySize = 128;
+            // block size of AES is 128 bits
+            aesObject.BlockSize = 128;
+            // mode -> CipherMode.*
+            aesObject.Mode = CipherMode.CBC;
+            // feedback size should be equal to block size
+            // aesObject.FeedbackSize = 128;
+            // set the key
+            aesObject.Key = key;
+            // set the IV
+            aesObject.IV = IV;
+            // create an encryptor with the settings provided
+            ICryptoTransform decryptor = aesObject.CreateDecryptor();
+            byte[] result = null;
+
+            try
+            {
+                result = decryptor.TransformFinalBlock(byteInput, 0, byteInput.Length);
+            }
+            catch (Exception e) // if encryption fails
+            {
+                Console.WriteLine(e.Message); // display the cause
             }
 
             return result;
