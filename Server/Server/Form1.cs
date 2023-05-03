@@ -13,6 +13,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+//SERVER LAST VERSION
+
 namespace Server
 {
     public partial class Form1 : Form
@@ -130,7 +132,7 @@ namespace Server
                     string messageToSend;
                     string[] lines = File.ReadAllLines(filePath);
                     buffer = null;
-                    if (lines.Length == 0 || lines[0] == "")
+                    if (lines.Length == 0)
                     {
                         messageToSend = "success";
                         buffer = Encoding.Default.GetBytes(messageToSend);
