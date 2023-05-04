@@ -179,10 +179,15 @@ namespace Server
                         string login_p1 = SearchUsernameInDB(message.Substring(6), true);
                         if (login_p1.Substring(0,2) == "No") //doesnt exists the username
                         {
-
                         }
                         else
                         {
+                            String[] delimiters = { "username:", " password:", " channel:" };
+                            string[] parts = login_p1.Split(delimiters, StringSplitOptions.None);
+                            string username = parts[1];
+                            string password = parts[2];
+                            string channel = parts[3];
+
                             byte[] randomNumber = new byte[16];
                             using (RandomNumberGenerator rng = RandomNumberGenerator.Create())
                             {
@@ -190,13 +195,25 @@ namespace Server
                             }
                             newClient.Send(randomNumber);
 
-                            //Byte[] hashed_pass = hashWithSHA512(password);
+                            Byte[] hashed_pass = password;
                             Byte[] hashed_pass_quarter = new Byte[16];
-                            //Buffer.BlockCopy(hashed_pass, 0, hashed_pass_quarter, 0, 16);
+                            Buffer.BlockCopy(hashed_pass, 0, hashed_pass_quarter, 0, 16);
+                            Byte[] hmac_result = applyHMACwithSHA512(randomNumber, hashed_pass_quarter);
 
                             byte[] buffer_hmac = new byte[384];
                             newClient.Receive(buffer_hmac);
                             string buffer_hmac_s = Encoding.Default.GetString(buffer_hmac);
+                            if (hmac_result == buffer_hmac_s)
+                            {
+                                //ok
+                                string auth_result = "Authentication Successful \n";
+                                logs.AppendText(auth_result);
+
+                            }
+                            else
+                            {
+                                //no
+                            }
                             //hmac verify
                             //encrypt in aes 128 
                             //newClient.Send(null); //send ok or no auth
@@ -290,6 +307,43 @@ namespace Server
             string hexString = BitConverter.ToString(input);
             return hexString.Replace("-", "");
         }
+
+                // encryption with AES-128
+        static byte[] encryptWithAES128(string input, byte[] key, byte[] IV)
+        {
+            // convert input string to byte array
+            byte[] byteInput = Encoding.Default.GetBytes(input);
+
+            // create AES object from System.Security.Cryptography
+            RijndaelManaged aesObject = new RijndaelManaged();
+            // since we want to use AES-128
+            aesObject.KeySize = 128;
+            // block size of AES is 128 bits
+            aesObject.BlockSize = 128;
+            // mode -> CipherMode.*
+            aesObject.Mode = CipherMode.CFB;
+            // feedback size should be equal to block size
+            aesObject.FeedbackSize = 128;
+            // set the key
+            aesObject.Key = key;
+            // set the IV
+            aesObject.IV = IV;
+            // create an encryptor with the settings provided
+            ICryptoTransform encryptor = aesObject.CreateEncryptor();
+            byte[] result = null;
+
+            try
+            {
+                result = encryptor.TransformFinalBlock(byteInput, 0, byteInput.Length);
+            }
+            catch (Exception e) // if encryption fails
+            {
+                Console.WriteLine(e.Message); // display the cause
+            }
+
+            return result;
+        }
+
         // signing with RSA
         static byte[] signWithRSA(string input, int algoLength, string xmlString)
         {
