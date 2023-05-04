@@ -244,7 +244,7 @@ namespace Server
                         string messageToSend = SearchUsernameInDB(_username, false);
                         if (messageToSend.Substring(0, 18) == "Signup successful:")
                         {
-                            messageToSend = messageToSend.Substring(0, 18);
+                            messageToSend = messageToSend.Substring(0, 17);
                             WriteCredentialsToFile(credentials);
                         }
                         else
@@ -253,10 +253,6 @@ namespace Server
                         }
                         buffer = Encoding.Default.GetBytes(messageToSend);
                         Byte[] buffer_sign = signWithRSA(messageToSend, 3072, server_signature);
-
-                        //string buffer_sign_string = Encoding.Default.GetString(buffer_sign);
-                        //string message_to_send = "Response:" + messageToSend + "Signature:" + buffer_sign_string;
-                        //buffer = Encoding.Default.GetBytes(message_to_send);
                         newClient.Send(buffer);
                         newClient.Send(buffer_sign);
                         logs.AppendText("Sent the success message signed\n");  
