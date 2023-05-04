@@ -151,7 +151,7 @@ namespace Server
                         return msg;
                     }                       
                 }
-                msg = "No such username: " + username_recieved + "\n";
+                msg = "No such username:\n";
                 logs.AppendText(msg);
                 return msg; 
             }
@@ -177,9 +177,13 @@ namespace Server
                     if (message.Substring(0,5) == "AUTH:")
                     {
                         //Login kısmı
-                        string login_p1 = SearchUsernameInDB(message.Substring(6), true);
+                        message = message.Substring(0, message.IndexOf("\0"));
+                        string login_p1 = SearchUsernameInDB(message.Substring(5), true);
                         if (login_p1.Substring(0,2) == "No") //doesnt exists the username
                         {
+                            string response = "No username";
+                            newClient.Send(Encoding.Default.GetBytes(response));
+                            logs.AppendText("No username " + login_p1 + "\n");
                         }
                         else
                         {
