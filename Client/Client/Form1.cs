@@ -103,13 +103,13 @@ namespace Client
                 try
                 {
                     Byte[] buffer = new Byte[64];
-                    Byte[] signature_byte = new byte[384]; 
                     clientSocket.Receive(buffer);
+                    Byte[] signature_byte = new Byte[384]; 
                     clientSocket.Receive(signature_byte);
                     string server_pub = Encoding.Default.GetString(server_signature);
 
                     string message = Encoding.Default.GetString(buffer);
-                    message = message.Substring(0, message.IndexOf("\0"));
+                    //message = message.Substring(0, message.IndexOf("\0"));
     
 
                     string pubString = Encoding.Default.GetString(publicKey);
