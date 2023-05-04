@@ -220,9 +220,7 @@ namespace Server
                             {
                                 //no
                             }
-                            //hmac verify
-                            //encrypt in aes 128 
-                            //newClient.Send(null); //send ok or no auth
+
                             }
                     }
                     else
@@ -380,12 +378,34 @@ namespace Server
             return result;
         }
         private void Form1_FormClosing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
+        {            
+         foreach (Socket i in clients)
+            {
+                i.Send(Encoding.Default.GetBytes("EXIT"));
+                i.Close(); //closing all clients before stoping
+            }
+            serverSocket.Close();
             listening = false;
             terminating = true;
+            listenButton.Enabled = true;
+
             Environment.Exit(0);
         }
 
+        private void disconnect_button_Click(object sender, EventArgs e)
+        {            
+            foreach (Socket i in clients)
+            {
+                i.Send(Encoding.Default.GetBytes("EXIT"));
+                //i.Close(); //closing all clients before stoping
+            }
+            //serverSocket.Close();
+            listening = false;
+            terminating = true;
+            listenButton.Enabled = false;
 
+
+            //Environment.Exit(0);
+        }
     }
 }

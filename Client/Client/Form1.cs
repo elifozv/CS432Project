@@ -107,6 +107,12 @@ namespace Client
                     Byte[] signature_byte = new Byte[384];
                     string message = Encoding.Default.GetString(buffer);
                     message = message.Substring(0, message.IndexOf("\0"));
+                    if (message == "EXIT")
+                    {
+                        connected = false;
+                        terminating = true;
+                        Environment.Exit(0);
+                    }
                     if (message == "Signup successful")
                     {
                         clientSocket.Receive(signature_byte);
