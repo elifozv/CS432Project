@@ -102,21 +102,24 @@ namespace Client
             {
                 try
                 {
-                    Byte[] buffer = new Byte[64];
+                    Byte[] buffer = new Byte[600];
                     clientSocket.Receive(buffer);
-                    Byte[] signature_byte = new Byte[384]; 
-                    clientSocket.Receive(signature_byte);
+                    Byte[] signature_byte = new Byte[384];
+                    string message = Encoding.Default.GetString(buffer);
+                    message = message.Substring(0, message.IndexOf("\0"));
+                    if (message == "Signup successful")
+                    {
+                        clientSocket.Receive(signature_byte);
+                    }
+                    else if (message == "Signup fail")
+                    {
+                        clientSocket.Receive(signature_byte);
+                    }
                     string server_pub = Encoding.Default.GetString(server_signature);
 
-                    string message = Encoding.Default.GetString(buffer);
-                    //message = message.Substring(0, message.IndexOf("\0"));
-    
-
-                    string pubString = Encoding.Default.GetString(publicKey);
-
-                    if (verifyWithRSA(message, 3072,server_pub ,signature_byte))
+                    if (verifyWithRSA(message, 3072, server_pub, signature_byte))
                     {
-                        if (message == "success")
+                        if (message == "Signup successful")
                         {
                             // Username was valid, display success message to user
                             logs.AppendText("You are successfully enrolled!\n");
@@ -125,7 +128,7 @@ namespace Client
                             radioButton2.Enabled = false;
                             radioButton3.Enabled = false;
                         }
-                        else if (message == "error")
+                        else if (message == "Signup fail")
                         {
                             // Username was invalid, display error message to user
                             logs.AppendText("This username already exists!\n");
@@ -138,6 +141,8 @@ namespace Client
                     {
                         logs.AppendText("Couldn't verify the signed message\n");
                     }
+                
+   
                 }
                 catch
                 {

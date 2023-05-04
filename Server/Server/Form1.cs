@@ -155,7 +155,7 @@ namespace Server
                 logs.AppendText(msg);
                 return msg; 
             }
-            return msg;
+            //return msg;
         }
 
         private void ReceiveMessage(Socket newClient)
@@ -176,6 +176,7 @@ namespace Server
 
                     if (message.Substring(0,5) == "AUTH:")
                     {
+                        //Login kısmı
                         string login_p1 = SearchUsernameInDB(message.Substring(6), true);
                         if (login_p1.Substring(0,2) == "No") //doesnt exists the username
                         {
@@ -226,6 +227,7 @@ namespace Server
                     }
                     else
                     {
+                        // Enrollment kısmı
                         byte[] encrypted = decryptWithRSA(message, 3072, privString);
                         string credentials = Encoding.Default.GetString(encrypted);
            
@@ -241,11 +243,21 @@ namespace Server
 
                         string messageToSend = SearchUsernameInDB(_username, false);
                         if (messageToSend.Substring(0, 18) == "Signup successful:")
+                        {
+                            messageToSend = messageToSend.Substring(0, 18);
                             WriteCredentialsToFile(credentials);
-
+                        }
+                        else
+                        {
+                            messageToSend = messageToSend.Substring(0, 11);
+                        }
                         buffer = Encoding.Default.GetBytes(messageToSend);
-                        newClient.Send(buffer);
                         Byte[] buffer_sign = signWithRSA(messageToSend, 3072, server_signature);
+
+                        //string buffer_sign_string = Encoding.Default.GetString(buffer_sign);
+                        //string message_to_send = "Response:" + messageToSend + "Signature:" + buffer_sign_string;
+                        //buffer = Encoding.Default.GetBytes(message_to_send);
+                        newClient.Send(buffer);
                         newClient.Send(buffer_sign);
                         logs.AppendText("Sent the success message signed\n");  
                     }
