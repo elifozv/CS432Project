@@ -146,7 +146,7 @@ namespace Server
 
                     if (username == username_recieved)
                     {
-                        msg = "username: " + username_recieved + "passsword:" + password "channel:" + channel+ "\n";
+                        msg = "username: " + username_recieved + "passsword:" + password + "channel:" + channel+ "\n";
                         logs.AppendText(msg);
                         return msg;
                     }                       
@@ -195,20 +195,25 @@ namespace Server
                             }
                             newClient.Send(randomNumber);
 
-                            Byte[] hashed_pass = password;
+                            Byte[] hashed_pass = Encoding.Default.GetBytes(password);
                             Byte[] hashed_pass_quarter = new Byte[16];
                             Buffer.BlockCopy(hashed_pass, 0, hashed_pass_quarter, 0, 16);
-                            Byte[] hmac_result = applyHMACwithSHA512(randomNumber, hashed_pass_quarter);
+                            string rand_num = Encoding.Default.GetString(randomNumber);
+                            Byte[] hmac_result = applyHMACwithSHA512(rand_num, hashed_pass_quarter);
 
                             byte[] buffer_hmac = new byte[384];
                             newClient.Receive(buffer_hmac);
-                            string buffer_hmac_s = Encoding.Default.GetString(buffer_hmac);
-                            if (hmac_result == buffer_hmac_s)
+                            if (hmac_result == buffer_hmac)
                             {
                                 //ok
                                 string auth_result = "Authentication Successful \n";
+                                Byte[] hashed_key_aes = new Byte[16];
+                                Byte[] hashed_4 = new Byte[16];
+                                Buffer.BlockCopy(hashed_pass, 0, hashed_key_aes, 0, 16);
+                                Buffer.BlockCopy(hashed_pass, 16, hashed_4, 0, 16);
+                                Byte[] encrpyt_aes128 = encryptWithAES128(auth_result, hashed_key_aes, hashed_4);
                                 logs.AppendText(auth_result);
-
+                                newClient.Send(encrpyt_aes128);
                             }
                             else
                             {
