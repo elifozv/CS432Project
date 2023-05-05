@@ -92,11 +92,7 @@ namespace Client
             {
                 clientSocket.Send(encryptedMsg);
                 logs.AppendText("Submit button clicked. Trying to enroll...\n");
-                /*
-                Thread receiveThread = new Thread(ReceiveMessage);
-                receiveThread.Start();
-                */
-                
+
             }
             catch
             {
@@ -204,11 +200,19 @@ namespace Client
             string auth_start = "AUTH:" + username;
             try
             {
+
                 logs.AppendText("Login button clicked. Trying to authenticate...\n");
                 clientSocket.Send(Encoding.Default.GetBytes(auth_start));
                 Byte[] response = new Byte[16];
+                Byte[] response2 = new Byte[16];
+
+                //clientSocket.ReceiveTimeout = 2000; // Set the receive timeout to 5 seconds
                 clientSocket.ReceiveTimeout = 2000; // Set the receive timeout to 5 seconds
+
                 clientSocket.Receive(response);
+                logs.AppendText(Encoding.Default.GetString(response));
+                clientSocket.Receive(response2);
+                logs.AppendText(Encoding.Default.GetString(response2));
                 string response_string = Encoding.Default.GetString(response);
                 response_string = response_string.Substring(0, response_string.IndexOf("\0"));
                 if (response_string.Substring(0,11) == "No username")

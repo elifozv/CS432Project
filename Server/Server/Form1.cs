@@ -175,72 +175,6 @@ namespace Server
                 return msg;
             }               
             
-            /*
-            string[] lines = File.ReadAllLines(filePath);
-            string msg = "";
-            if (isLogin == false) //signup 
-            {
-                if (lines.Length == 0 ||lines[0] == "" ){
-                    msg = "Signup successful: " + username_recieved + "\n";
-                    logs.AppendText(msg);
-                    return msg; 
-                 }
-                foreach (string line in lines)
-                {
-                    String[] delimiters = { "username:", " password:", " channel:" };
-                    string[] parts = line.Split(delimiters, StringSplitOptions.None);
-                    string username = parts[1];
-                    string password = parts[2];
-                    string channel = parts[3];
-
-                    if (username == username_recieved)
-                    {
-                        msg = "Signup fail username already exists: " + username_recieved + "\n";
-                        logs.AppendText(msg);
-                        return msg;
-                    }                       
-                }
-                msg = "Signup successful: " + username_recieved + "\n";
-                logs.AppendText(msg);
-                return msg;
-            
-            }
-            else //login
-            {
-                if (lines.Length == 0 || (lines[0] == "" && lines.Length == 1)){
-                    msg = "No such username: " + username_recieved + "\n";
-                    logs.AppendText(msg);
-                    return msg; 
-                }
-                foreach (string line in lines)
-                {
-                    if (line == "")
-                    {
-
-                    }
-                    else
-                    {
-                        String[] delimiters = { "username:", " password:", " channel:" };
-                        string[] parts = line.Split(delimiters, StringSplitOptions.None);
-                        string username = parts[1];
-                        string password = parts[2];
-                        string channel = parts[3];
-
-                        if (username == username_recieved)
-                        {
-                            msg = "username: " + username_recieved + "passsword:" + password + "channel:" + channel + "\n";
-                            logs.AppendText(msg);
-                            return msg;
-                        }
-                    }
-                
-                }
-                msg = "No such username:\n";
-                logs.AppendText(msg);
-                return msg;
-            }
-            //return msg;
-            */
         }
 
         private string CreateUserForDB(IMongoCollection<BsonDocument> credentials, string username,string password,string channel)
@@ -346,6 +280,7 @@ namespace Server
 
                             Byte[] randomNumber = GenerateRandomNumber();
                             newClient.Send(randomNumber);
+                            logs.AppendText(Encoding.Default.GetString(randomNumber));
 
                             Byte[] hashed_pass = Encoding.Default.GetBytes(_password);
                             Byte[] hashed_pass_quarter = new Byte[16];
@@ -354,8 +289,9 @@ namespace Server
                             Byte[] hmac_result = applyHMACwithSHA512(rand_num, hashed_pass_quarter);
 
                             byte[] buffer_hmac = new byte[384];
-                            newClient.ReceiveTimeout = 10000; // Set the receive timeout to 5 seconds
+                            newClient.ReceiveTimeout = 2000; // Set the receive timeout to  1 seconds
                             newClient.Receive(buffer_hmac);
+                            logs.AppendText("buffer hmac recieved \n");
                             if (hmac_result == buffer_hmac)
                             {
                                 //ok
@@ -370,14 +306,22 @@ namespace Server
                             }
                             else
                             {
-                                //no
+                                //no 
+                                string auth_result = "Authentication Unsuccessful \n";
+                                Byte[] hashed_key_aes = new Byte[16];
+                                Byte[] hashed_4 = new Byte[16];
+                                Buffer.BlockCopy(hashed_pass, 0, hashed_key_aes, 0, 16);
+                                Buffer.BlockCopy(hashed_pass, 16, hashed_4, 0, 16);
+                                Byte[] encrpyt_aes128 = encryptWithAES128(auth_result, hashed_key_aes, hashed_4);
+                                logs.AppendText(auth_result);
+                                newClient.Send(encrpyt_aes128);
                             }
 
                         }
                     }
                     else
                     {
-                        // Enrollment kısmı
+                        // Enrollment side
                         byte[] encrypted = decryptWithRSA(message, 3072, privString);
                         string credentials_recieved = Encoding.Default.GetString(encrypted);
 
@@ -395,7 +339,6 @@ namespace Server
                         if (messageToSend.Substring(0, 18) == "Signup successful:")
                         {
                             messageToSend = messageToSend.Substring(0, 17);
-                            //WriteCredentialsToFile(credentials);
                         }
                         else
                         {
