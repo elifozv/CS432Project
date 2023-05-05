@@ -179,6 +179,7 @@ namespace Server
                     string server_signature = Encoding.Default.GetString(signature);
                     if (message.Substring(0,4) == "EXIT")
                     {
+                        newClient.Send(Encoding.Default.GetBytes("EXIT"));
                         newClient.Close();
                         clients.Remove(newClient);
                     }

@@ -122,7 +122,7 @@ namespace Client
                         disconnect_button.Enabled = false;
                         submitButton.Enabled = false;
                         auth_button.Enabled = false;
-                        logs.AppendText("Client Disconnected");
+                        logs.AppendText("Client Disconnected\n");
                         //Environment.Exit(0);
                         isCmd = false;
                         break;
@@ -397,17 +397,12 @@ namespace Client
         private void disconnect_button_Click(object sender, EventArgs e)
         {
             clientSocket.Send(Encoding.Default.GetBytes("EXIT"));
-            logs.AppendText("Client Disconnected");
             connected = false;
             terminating = true;
             connectButton.Enabled = true;
             auth_button.Enabled = false;
             submitButton.Enabled = false;
-            radioButton1.Enabled = false;
-            radioButton2.Enabled = false;
-            radioButton3.Enabled = false;
-            userText.Enabled = false;
-            passText.Enabled = false;
+            
         }
     }
 }
