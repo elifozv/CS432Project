@@ -12,6 +12,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using MongoDB.Driver;
+using MongoDB.Bson;
+using System.Collections.ObjectModel;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 
 namespace Server
@@ -29,6 +33,8 @@ namespace Server
 
         Socket serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         List<Socket> clients = new List<Socket>();
+
+
         
         public Form1()
         {
@@ -62,7 +68,23 @@ namespace Server
                 listening = true;
                 listenButton.Enabled = false;
                 disconnect_button.Enabled = true;
-                acceptThread = new Thread(new ThreadStart(Accept));
+                const string connectionUri = "mongodb+srv://digdeci:6HJ!H$d5vhsMDCp@cluster0.uftj1g6.mongodb.net/?retryWrites=true&w=majority";
+                var settings = MongoClientSettings.FromConnectionString(connectionUri);
+                // Set the ServerApi field of the settings object to Stable API version 1
+                settings.ServerApi = new ServerApi(ServerApiVersion.V1);
+                // Create a new client and connect to the server
+                var client = new MongoClient(settings);
+                // Send a ping to confirm a successful connection
+                try
+                {
+                    var result = client.GetDatabase("admin").RunCommand<BsonDocument>(new BsonDocument("ping", 1));
+                    Console.WriteLine("Pinged your deployment. You successfully connected to MongoDB!");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
+                acceptThread = new Thread(() => Accept(client));
                 acceptThread.Start();
 
                 logs.AppendText("Started listening on port: " + Port + "\n");
@@ -74,7 +96,7 @@ namespace Server
 
         }
 
-        private void Accept()
+        private void Accept(MongoClient client)
         {
             while (listening)
             {
@@ -84,7 +106,7 @@ namespace Server
                     clients.Add(newClient);
                     logs.AppendText("A client is connected. \n");
 
-                    Thread recieveThread = new Thread(() => ReceiveMessage(newClient));
+                    Thread recieveThread = new Thread(() => ReceiveMessage(newClient,client));
                     recieveThread.Start();
                 }
                 catch
@@ -101,8 +123,47 @@ namespace Server
             }
         }
 
-        private string SearchUsernameInDB(string username_recieved, bool isLogin) //islogin = true auth, islogin = false signup
+        private string SearchUsernameInDB(IMongoCollection<BsonDocument> credentials, string username_recieved) //islogin = true auth, islogin = false signup
         {
+            //This fucntion is for login
+            var documents = credentials.Find(new BsonDocument()).ToEnumerable();
+            var count = credentials.CountDocuments(new BsonDocument());
+            if (count == 0)
+            {
+                //database boş
+                //login fail mesajı gönder
+                string msg = "No such username: " + username_recieved + "\n";
+                logs.AppendText(msg);
+                return msg;
+            }
+            else
+            {
+                foreach (var document in documents)
+                {
+                    string username;
+                    string password;
+                    string channel;
+                    if (document != null)
+                    {
+                        username = document.GetValue("username").ToString();
+                        password = document.GetValue("password").ToString();
+                        channel = document.GetValue("channel").ToString();
+                        if (username == username_recieved)
+                        {
+                            //user found return credentials
+                            string msggg = "username: " + username_recieved + "passsword:" + password + "channel:" + channel + "\n";
+                            logs.AppendText(msggg);
+                            return msggg;
+                        }
+                    }
+                }
+                //user not found
+                string msg = "No such username:\n";
+                logs.AppendText(msg);
+                return msg;
+            }               
+            
+            /*
             string[] lines = File.ReadAllLines(filePath);
             string msg = "";
             if (isLogin == false) //signup 
@@ -167,9 +228,64 @@ namespace Server
                 return msg;
             }
             //return msg;
+            */
         }
 
-        private void ReceiveMessage(Socket newClient)
+        private string CreateUserForDB(IMongoCollection<BsonDocument> credentials, string username,string password,string channel)
+        {
+            //This function is for signup
+            var documents = credentials.Find(new BsonDocument()).ToEnumerable();
+            var count = credentials.CountDocuments(new BsonDocument());
+            if (count == 0)
+            {
+                //database boş
+                //yeni bir document aç ve database'e pushla
+                var document = new BsonDocument
+                {
+                    {"username",username },
+                    {"password",password },
+                    {"channel",channel }
+                };
+                credentials.InsertOne(document);
+                string msg = "Signup successful: " + username + "\n";
+                logs.AppendText(msg);
+                return msg;
+            }
+            else
+            {
+                foreach (var document in documents)
+                {
+                    string _username;
+                    string _password;
+                    string _channel;
+                    if (document != null)
+                    {
+                        _username = document.GetValue("username").ToString();
+                        _password = document.GetValue("password").ToString();
+                        _channel = document.GetValue("channel").ToString();
+                        if (_username == username)
+                        {
+                            //same username found
+                            string msgg = "Signup fail username already exists: " + _username + "\n";
+                            logs.AppendText(msgg);
+                            return msgg;
+                        }
+                    }
+                }
+                // add the user to database
+                var document2 = new BsonDocument
+                {
+                    {"username",username },
+                    {"password",password },
+                    {"channel",channel }
+                };
+                credentials.InsertOne(document2);
+                string msg = "Signup successful: " + username + "\n";
+                logs.AppendText(msg);
+                return msg;
+            }
+        }
+        private void ReceiveMessage(Socket newClient,MongoClient client)
         {
 
             bool connected = true;
@@ -178,35 +294,43 @@ namespace Server
             {
                 try
                 {
+                    var database = client.GetDatabase("CS432_Database");
+                    var credentials = database.GetCollection<BsonDocument>("Credentials");
+
+        
                     byte[] buffer = new byte[384];
                     newClient.Receive(buffer);
 
                     string message = Encoding.Default.GetString(buffer);
                     string privString = Encoding.Default.GetString(privateKey);
                     string server_signature = Encoding.Default.GetString(signature);
-                    if (message.Substring(0,4) == "EXIT")
+                    if (message.Substring(0, 4) == "EXIT")
                     {
                         newClient.Send(Encoding.Default.GetBytes("EXIT"));
                         newClient.Close();
                         clients.Remove(newClient);
                     }
-                    else if (message.Substring(0,5) == "AUTH:")
+                    else if (message.Substring(0, 5) == "AUTH:")
                     {
                         //Login kısmı
                         message = message.Substring(0, message.IndexOf("\0"));
-                        string login_p1 = SearchUsernameInDB(message.Substring(5), true);
-                        if (login_p1.Substring(0,2) == "No") //doesnt exists the username
+                        string login_p1 = SearchUsernameInDB(credentials, message.Substring(6));
+                        if (login_p1.Substring(0, 2) == "No") //doesnt exists the username
                         {
                             string response = "No username";
                             newClient.Send(Encoding.Default.GetBytes(response));
                         }
                         else
                         {
-                            String[] delimiters = { "username:", " password:", " channel:" };
-                            string[] parts = login_p1.Split(delimiters, StringSplitOptions.None);
-                            string username = parts[1];
-                            string password = parts[2];
-                            string channel = parts[3];
+                            int username_f_index = login_p1.IndexOf("username:");
+                            int username_length = "username:".Length;
+                            int password_f_index = login_p1.IndexOf("password:");
+                            int password_length = "password:".Length;
+                            int channel_f_index = login_p1.IndexOf("channel:");
+                            int channel_length = "channel:".Length;
+                            string _username = login_p1.Substring(username_f_index + username_length, (password_f_index - (username_f_index + username_length)));
+                            string _password = login_p1.Substring(password_f_index + password_length, (channel_f_index - (password_f_index + password_length)));
+                            string _channel = login_p1.Substring(channel_f_index + channel_length, (login_p1.Length - (channel_f_index + channel_length)));
 
                             byte[] randomNumber = new byte[16];
                             using (RandomNumberGenerator rng = RandomNumberGenerator.Create())
@@ -215,7 +339,7 @@ namespace Server
                             }
                             newClient.Send(randomNumber);
 
-                            Byte[] hashed_pass = Encoding.Default.GetBytes(password);
+                            Byte[] hashed_pass = Encoding.Default.GetBytes(_password);
                             Byte[] hashed_pass_quarter = new Byte[16];
                             Buffer.BlockCopy(hashed_pass, 0, hashed_pass_quarter, 0, 16);
                             string rand_num = Encoding.Default.GetString(randomNumber);
@@ -240,29 +364,29 @@ namespace Server
                                 //no
                             }
 
-                            }
+                        }
                     }
                     else
                     {
                         // Enrollment kısmı
                         byte[] encrypted = decryptWithRSA(message, 3072, privString);
-                        string credentials = Encoding.Default.GetString(encrypted);
-           
-                        int username_f_index = credentials.IndexOf("username:");
-                        int username_length = "username:".Length;
-                        int password_f_index = credentials.IndexOf("password:");
-                        int password_length = "password:".Length;
-                        int channel_f_index = credentials.IndexOf("channel:");
-                        int channel_length = "channel:".Length;
-                        string _username = credentials.Substring(username_f_index + username_length, (password_f_index - (username_f_index + username_length)));
-                        string _password = credentials.Substring(password_f_index + password_length, (channel_f_index - (password_f_index + password_length)));
-                        string _channel = credentials.Substring(channel_f_index + channel_length, (credentials.Length - (channel_f_index + channel_length)));
+                        string credentials_recieved = Encoding.Default.GetString(encrypted);
 
-                        string messageToSend = SearchUsernameInDB(_username, false);
+                        int username_f_index = credentials_recieved.IndexOf("username:");
+                        int username_length = "username:".Length;
+                        int password_f_index = credentials_recieved.IndexOf("password:");
+                        int password_length = "password:".Length;
+                        int channel_f_index = credentials_recieved.IndexOf("channel:");
+                        int channel_length = "channel:".Length;
+                        string _username = credentials_recieved.Substring(username_f_index + username_length, (password_f_index - (username_f_index + username_length)));
+                        string _password = credentials_recieved.Substring(password_f_index + password_length, (channel_f_index - (password_f_index + password_length)));
+                        string _channel = credentials_recieved.Substring(channel_f_index + channel_length, (credentials_recieved.Length - (channel_f_index + channel_length)));
+
+                        string messageToSend = CreateUserForDB(credentials,_username,_password,_channel);
                         if (messageToSend.Substring(0, 18) == "Signup successful:")
                         {
                             messageToSend = messageToSend.Substring(0, 17);
-                            WriteCredentialsToFile(credentials);
+                            //WriteCredentialsToFile(credentials);
                         }
                         else
                         {
@@ -272,8 +396,10 @@ namespace Server
                         Byte[] buffer_sign = signWithRSA(messageToSend, 3072, server_signature);
                         newClient.Send(buffer);
                         newClient.Send(buffer_sign);
-                        logs.AppendText("Sent the success message signed\n");  
+                        logs.AppendText("Sent the success message signed\n");
                     }
+                    
+                    
                 }
                 catch
                 {
