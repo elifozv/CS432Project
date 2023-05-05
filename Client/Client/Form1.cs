@@ -91,8 +91,10 @@ namespace Client
             {
                 clientSocket.Send(encryptedMsg);
                 logs.AppendText("Submit button clicked. Trying to enroll...\n");
+                /*
                 Thread receiveThread = new Thread(ReceiveMessage);
                 receiveThread.Start();
+                */
                 
             }
             catch

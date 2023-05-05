@@ -134,29 +134,37 @@ namespace Server
             }
             else //login
             {
-                if (lines.Length == 0 ||lines[0] == "" ){
+                if (lines.Length == 0 || (lines[0] == "" && lines.Length == 1)){
                     msg = "No such username: " + username_recieved + "\n";
                     logs.AppendText(msg);
                     return msg; 
                 }
                 foreach (string line in lines)
                 {
-                    String[] delimiters = { "username:", " password:", " channel:" };
-                    string[] parts = line.Split(delimiters, StringSplitOptions.None);
-                    string username = parts[1];
-                    string password = parts[2];
-                    string channel = parts[3];
-
-                    if (username == username_recieved)
+                    if (line == "")
                     {
-                        msg = "username: " + username_recieved + "passsword:" + password + "channel:" + channel+ "\n";
-                        logs.AppendText(msg);
-                        return msg;
-                    }                       
+
+                    }
+                    else
+                    {
+                        String[] delimiters = { "username:", " password:", " channel:" };
+                        string[] parts = line.Split(delimiters, StringSplitOptions.None);
+                        string username = parts[1];
+                        string password = parts[2];
+                        string channel = parts[3];
+
+                        if (username == username_recieved)
+                        {
+                            msg = "username: " + username_recieved + "passsword:" + password + "channel:" + channel + "\n";
+                            logs.AppendText(msg);
+                            return msg;
+                        }
+                    }
+                
                 }
                 msg = "No such username:\n";
                 logs.AppendText(msg);
-                return msg; 
+                return msg;
             }
             //return msg;
         }
