@@ -45,6 +45,7 @@ namespace Client
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.auth_button = new System.Windows.Forms.Button();
+            this.disconnect_button = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -55,7 +56,7 @@ namespace Client
             this.connectButton.Name = "connectButton";
             this.connectButton.Size = new System.Drawing.Size(172, 64);
             this.connectButton.TabIndex = 0;
-            this.connectButton.Text = "connect";
+            this.connectButton.Text = "Connect";
             this.connectButton.UseVisualStyleBackColor = true;
             this.connectButton.Click += new System.EventHandler(this.connectButton_Click);
             // 
@@ -107,7 +108,7 @@ namespace Client
             this.logs.Location = new System.Drawing.Point(468, 118);
             this.logs.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.logs.Name = "logs";
-            this.logs.Size = new System.Drawing.Size(579, 734);
+            this.logs.Size = new System.Drawing.Size(579, 817);
             this.logs.TabIndex = 6;
             this.logs.Text = "";
             // 
@@ -215,11 +216,23 @@ namespace Client
             this.auth_button.UseVisualStyleBackColor = true;
             this.auth_button.Click += new System.EventHandler(this.auth_button_Click);
             // 
+            // disconnect_button
+            // 
+            this.disconnect_button.Location = new System.Drawing.Point(40, 851);
+            this.disconnect_button.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.disconnect_button.Name = "disconnect_button";
+            this.disconnect_button.Size = new System.Drawing.Size(400, 72);
+            this.disconnect_button.TabIndex = 13;
+            this.disconnect_button.Text = "Disconnect";
+            this.disconnect_button.UseVisualStyleBackColor = true;
+            this.disconnect_button.Click += new System.EventHandler(this.disconnect_button_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(16F, 31F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1060, 896);
+            this.ClientSize = new System.Drawing.Size(1074, 950);
+            this.Controls.Add(this.disconnect_button);
             this.Controls.Add(this.auth_button);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.label3);
@@ -261,5 +274,6 @@ namespace Client
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Button auth_button;
+        private System.Windows.Forms.Button disconnect_button;
     }
 }
