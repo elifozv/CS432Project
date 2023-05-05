@@ -183,7 +183,6 @@ namespace Server
                         {
                             string response = "No username";
                             newClient.Send(Encoding.Default.GetBytes(response));
-                            logs.AppendText("No username " + login_p1 + "\n");
                         }
                         else
                         {
