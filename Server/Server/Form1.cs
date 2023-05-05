@@ -30,11 +30,14 @@ namespace Server
 
         Socket serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         List<Socket> clients = new List<Socket>();
+        
         public Form1()
         {
             Control.CheckForIllegalCrossThreadCalls = false;
             this.FormClosing += new FormClosingEventHandler(Form1_FormClosing);
             InitializeComponent();
+
+            disconnect_button.Enabled = false;
 
             /*if (!File.Exists(filePath)) // Check if the file already exists
             {
@@ -59,6 +62,7 @@ namespace Server
 
                 listening = true;
                 listenButton.Enabled = false;
+                disconnect_button.Enabled = true;
                 acceptThread = new Thread(new ThreadStart(Accept));
                 acceptThread.Start();
 
@@ -173,8 +177,12 @@ namespace Server
                     string message = Encoding.Default.GetString(buffer);
                     string privString = Encoding.Default.GetString(privateKey);
                     string server_signature = Encoding.Default.GetString(signature);
-
-                    if (message.Substring(0,5) == "AUTH:")
+                    if (message.Substring(0,4) == "EXIT")
+                    {
+                        newClient.Close();
+                        clients.Remove(newClient);
+                    }
+                    else if (message.Substring(0,5) == "AUTH:")
                     {
                         //Login kısmı
                         message = message.Substring(0, message.IndexOf("\0"));
@@ -398,17 +406,18 @@ namespace Server
 
         private void disconnect_button_Click(object sender, EventArgs e)
         {            
+            
             foreach (Socket i in clients)
             {
                 i.Send(Encoding.Default.GetBytes("EXIT"));
-                //i.Close(); //closing all clients before stoping
+                i.Close(); //closing all clients before stoping
             }
-            //serverSocket.Close();
+            serverSocket.Close();
             listening = false;
             terminating = true;
-            listenButton.Enabled = false;
-
-
+            listenButton.Enabled = true;
+            disconnect_button.Enabled = false;
+            logs.AppendText("Server Disconnected \n");
             //Environment.Exit(0);
         }
     }

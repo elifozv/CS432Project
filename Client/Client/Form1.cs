@@ -32,6 +32,7 @@ namespace Client
 
             submitButton.Enabled = false;
             auth_button.Enabled = false;
+            disconnect_button.Enabled = false;
         }
 
        
@@ -52,6 +53,9 @@ namespace Client
 
                     submitButton.Enabled = true;
                     auth_button.Enabled = true;
+                    disconnect_button.Enabled = true;
+                    Thread receiveThread = new Thread(ReceiveMessage);
+                    receiveThread.Start();
 
                 }
                 catch
@@ -104,6 +108,7 @@ namespace Client
             {
                 try
                 {
+                    bool isCmd = true;
                     Byte[] buffer = new Byte[600];
                     clientSocket.Receive(buffer);
                     Byte[] signature_byte = new Byte[384];
@@ -113,13 +118,20 @@ namespace Client
                     {
                         connected = false;
                         terminating = true;
-                        Environment.Exit(0);
+                        connectButton.Enabled = true;
+                        disconnect_button.Enabled = false;
+                        submitButton.Enabled = false;
+                        auth_button.Enabled = false;
+                        logs.AppendText("Client Disconnected");
+                        //Environment.Exit(0);
+                        isCmd = false;
+                        break;
                     }
-                    if(message == "No username")
+                    else if(message == "No username")
                     {
                         logs.AppendText("The username is wrong! Try again\n");
                     }
-                    if (message == "Signup successful")
+                    else if (message == "Signup successful")
                     {
                         clientSocket.Receive(signature_byte);
                     }
@@ -128,8 +140,9 @@ namespace Client
                         clientSocket.Receive(signature_byte);
                     }
                     string server_pub = Encoding.Default.GetString(server_signature);
-
-                    if (verifyWithRSA(message, 3072, server_pub, signature_byte))
+                    if (!isCmd) { //skip
+                                  }
+                    else if (verifyWithRSA(message, 3072, server_pub, signature_byte))
                     {
                         if (message == "Signup successful")
                         {
@@ -379,6 +392,22 @@ namespace Client
                 channel = "SPS101";
             }
 
+        }
+
+        private void disconnect_button_Click(object sender, EventArgs e)
+        {
+            clientSocket.Send(Encoding.Default.GetBytes("EXIT"));
+            logs.AppendText("Client Disconnected");
+            connected = false;
+            terminating = true;
+            connectButton.Enabled = true;
+            auth_button.Enabled = false;
+            submitButton.Enabled = false;
+            radioButton1.Enabled = false;
+            radioButton2.Enabled = false;
+            radioButton3.Enabled = false;
+            userText.Enabled = false;
+            passText.Enabled = false;
         }
     }
 }
