@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -19,31 +20,43 @@ namespace Server
 {
     public partial class Form1 : Form
     {
-        
+        public class User
+        {
+            public string Username { get; set; }
+            public string Password { get; set; }
+            public string Channel { get; set; }
+        }
+
         bool terminating = false;
         bool listening = false;
 
         byte[] privateKey = File.ReadAllBytes("server_enc_dec_pub_prv.txt");
         byte[] signature = File.ReadAllBytes("server_sign_verify_pub_prv.txt");
 
-        string filePath = @"data/credentials.txt";
+        //string filePath = @"data/credentials.txt";
 
         Socket serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         List<Socket> clients = new List<Socket>();
+        string usersFilePath = "users.json";
+        List<User> users;
+
         public Form1()
         {
             Control.CheckForIllegalCrossThreadCalls = false;
             this.FormClosing += new FormClosingEventHandler(Form1_FormClosing);
             InitializeComponent();
 
-            /*if (!File.Exists(filePath)) // Check if the file already exists
+            if (File.Exists("users.json"))
             {
-                // If the file doesn't exist, create it
-                using (FileStream fs = File.Create(filePath))
-                {
-                    // Leave the stream open to allow further file operations
-                }
-            }*/
+                string json = File.ReadAllText("users.json");
+                users = JsonConvert.DeserializeObject<List<User>>(json);
+            }
+            else
+            {
+                // If the file doesn't exist, create an empty list of users
+                users = new List<User>();
+            }
+
         }
 
 
@@ -100,53 +113,41 @@ namespace Server
 
         private string SearchUsernameInDB(string username_recieved, bool isLogin) //islogin = true auth, islogin = false signup
         {
-            string[] lines = File.ReadAllLines(filePath);
+            //string[] lines = File.ReadAllLines(filePath);
             string msg = "";
             if (isLogin == false) //signup 
             {
-                if (lines.Length == 0 ||lines[0] == "" ){
+                if (users == null || users.Count == 0) // Check if the JSON file is empty
+                {
                     msg = "Signup successful: " + username_recieved + "\n";
                     logs.AppendText(msg);
-                    return msg; 
-                 }
-                foreach (string line in lines)
-                {
-                    String[] delimiters = { "username:", " password:", " channel:" };
-                    string[] parts = line.Split(delimiters, StringSplitOptions.None);
-                    string username = parts[1];
-                    string password = parts[2];
-                    string channel = parts[3];
-
-                    if (username == username_recieved)
-                    {
-                        msg = "Signup fail username already exists: " + username_recieved + "\n";
-                        logs.AppendText(msg);
-                        return msg;
-                    }                       
+                    return msg;
                 }
-                msg = "Signup successful: " + username_recieved + "\n";
-                logs.AppendText(msg);
-                return msg;
+                else
+                {
+                    foreach (User user in users)
+                    {
+                        if (user.Username == username_recieved)
+                        {
+                            msg = "Signup fail username already exists: " + username_recieved + "\n";
+                            logs.AppendText(msg);
+                            return msg;
+                        }
+                    }
+                    msg = "Signup successful: " + username_recieved + "\n";
+                    logs.AppendText(msg);
+                    return msg;
+                }
             
             }
             else //login
             {
-                if (lines.Length == 0 ||lines[0] == "" ){
-                    msg = "No such username: " + username_recieved + "\n";
-                    logs.AppendText(msg);
-                    return msg; 
-                }
-                foreach (string line in lines)
-                {
-                    String[] delimiters = { "username:", " password:", " channel:" };
-                    string[] parts = line.Split(delimiters, StringSplitOptions.None);
-                    string username = parts[1];
-                    string password = parts[2];
-                    string channel = parts[3];
+                foreach (User user in users)
+                { 
 
-                    if (username == username_recieved)
+                    if (user.Username == username_recieved)
                     {
-                        msg = "username: " + username_recieved + "passsword:" + password + "channel:" + channel+ "\n";
+                        msg = "username: " + username_recieved + "passsword:" + user.Password + "channel:" + user.Channel+ "\n";
                         logs.AppendText(msg);
                         return msg;
                     }                       
@@ -245,7 +246,7 @@ namespace Server
                         if (messageToSend.Substring(0, 18) == "Signup successful:")
                         {
                             messageToSend = messageToSend.Substring(0, 17);
-                            WriteCredentialsToFile(credentials);
+                            WriteCredentialsToFile(_username, _password, _channel);
                         }
                         else
                         {
@@ -272,12 +273,18 @@ namespace Server
             }
         }
 
-        private void WriteCredentialsToFile(string message)
+        private void WriteCredentialsToFile(string username, string password, string channel)
         {
-            using (StreamWriter writer = new StreamWriter(filePath, true))
+            User newUser = new User
             {
-                writer.WriteLine(message);
-            }
+                Username = username,
+                Password = password,
+                Channel = channel
+            };
+
+            users.Add(newUser);
+            string updatedJson = JsonConvert.SerializeObject(users);
+            File.WriteAllText("users.json", updatedJson);
         }
 
         static byte[] decryptWithRSA(string input, int algoLength, string xmlStringKey)
