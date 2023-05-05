@@ -127,7 +127,7 @@ namespace Client
                         isCmd = false;
                         break;
                     }
-                    else if(message == "No username")
+                    if(message == "No username")
                     {
                         logs.AppendText("The username is wrong! Try again\n");
                     }
@@ -148,10 +148,7 @@ namespace Client
                         {
                             // Username was valid, display success message to user
                             logs.AppendText("You are successfully enrolled!\n");
-                            submitButton.Enabled = false;
-                            radioButton1.Enabled = false;
-                            radioButton2.Enabled = false;
-                            radioButton3.Enabled = false;
+                           
                         }
                         else if (message == "Signup fail")
                         {
@@ -177,11 +174,7 @@ namespace Client
                         connectButton.Enabled = true;
                         auth_button.Enabled = false;
                         submitButton.Enabled = false;
-                        radioButton1.Enabled = false;
-                        radioButton2.Enabled = false;
-                        radioButton3.Enabled = false;
-                        userText.Enabled = false;
-                        passText.Enabled = false;
+                      
                     }
 
                     //clientSocket.Close();

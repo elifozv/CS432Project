@@ -13,7 +13,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-//SERVER LAST VERSION
 
 namespace Server
 {
@@ -397,6 +396,8 @@ namespace Server
                 i.Send(Encoding.Default.GetBytes("EXIT"));
                 i.Close(); //closing all clients before stoping
             }
+         clients.Clear();
+
             serverSocket.Close();
             listening = false;
             terminating = true;
@@ -413,12 +414,15 @@ namespace Server
                 i.Send(Encoding.Default.GetBytes("EXIT"));
                 i.Close(); //closing all clients before stoping
             }
+            clients.Clear();
+
             serverSocket.Close();
             listening = false;
             terminating = true;
             listenButton.Enabled = true;
             disconnect_button.Enabled = false;
             logs.AppendText("Server Disconnected \n");
+            serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             //Environment.Exit(0);
         }
     }
