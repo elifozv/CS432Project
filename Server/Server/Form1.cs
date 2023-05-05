@@ -123,6 +123,18 @@ namespace Server
             }
         }
 
+        public static byte[] GenerateRandomNumber()
+        {
+            RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
+
+            int byteCount = 16;
+            byte[] randomNumber = new byte[byteCount];
+            rng.GetBytes(randomNumber);
+
+            return randomNumber;
+        }
+
+
         private string SearchUsernameInDB(IMongoCollection<BsonDocument> credentials, string username_recieved) //islogin = true auth, islogin = false signup
         {
             //This fucntion is for login
@@ -151,14 +163,14 @@ namespace Server
                         if (username == username_recieved)
                         {
                             //user found return credentials
-                            string msggg = "username: " + username_recieved + "passsword:" + password + "channel:" + channel + "\n";
+                            string msggg = "username: " + username_recieved + "password:" + password + "channel:" + channel + "\n";
                             logs.AppendText(msggg);
                             return msggg;
                         }
                     }
                 }
                 //user not found
-                string msg = "No such username:\n";
+                string msg = "No such username found\n";
                 logs.AppendText(msg);
                 return msg;
             }               
@@ -310,15 +322,15 @@ namespace Server
                         newClient.Close();
                         clients.Remove(newClient);
                     }
-                    else if (message.Substring(0, 5) == "AUTH:")
+                    else if (message.Substring(0, 5) == "AUTH:")//Login kısmı
                     {
-                        //Login kısmı
                         message = message.Substring(0, message.IndexOf("\0"));
-                        string login_p1 = SearchUsernameInDB(credentials, message.Substring(6));
+                        string login_p1 = SearchUsernameInDB(credentials, message.Substring(5));
                         if (login_p1.Substring(0, 2) == "No") //doesnt exists the username
                         {
                             string response = "No username";
-                            newClient.Send(Encoding.Default.GetBytes(response));
+                            Byte[] no_username_resp = Encoding.Default.GetBytes(response);
+                            newClient.Send(no_username_resp);
                         }
                         else
                         {
@@ -332,11 +344,7 @@ namespace Server
                             string _password = login_p1.Substring(password_f_index + password_length, (channel_f_index - (password_f_index + password_length)));
                             string _channel = login_p1.Substring(channel_f_index + channel_length, (login_p1.Length - (channel_f_index + channel_length)));
 
-                            byte[] randomNumber = new byte[16];
-                            using (RandomNumberGenerator rng = RandomNumberGenerator.Create())
-                            {
-                                rng.GetBytes(randomNumber);
-                            }
+                            Byte[] randomNumber = GenerateRandomNumber();
                             newClient.Send(randomNumber);
 
                             Byte[] hashed_pass = Encoding.Default.GetBytes(_password);
@@ -346,6 +354,7 @@ namespace Server
                             Byte[] hmac_result = applyHMACwithSHA512(rand_num, hashed_pass_quarter);
 
                             byte[] buffer_hmac = new byte[384];
+                            newClient.ReceiveTimeout = 10000; // Set the receive timeout to 5 seconds
                             newClient.Receive(buffer_hmac);
                             if (hmac_result == buffer_hmac)
                             {

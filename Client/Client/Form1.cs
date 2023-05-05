@@ -33,6 +33,7 @@ namespace Client
             submitButton.Enabled = false;
             auth_button.Enabled = false;
             disconnect_button.Enabled = false;
+
         }
 
        
@@ -110,12 +111,12 @@ namespace Client
             {
                 try
                 {
-                    bool isCmd = true;
                     Byte[] buffer = new Byte[600];
                     clientSocket.Receive(buffer);
                     Byte[] signature_byte = new Byte[384];
                     string message = Encoding.Default.GetString(buffer);
                     message = message.Substring(0, message.IndexOf("\0"));
+                    bool isCmd = true;
                     if (message == "EXIT")
                     {
                         connected = false;
@@ -133,6 +134,10 @@ namespace Client
                     {
                         logs.AppendText("The username is wrong! Try again\n");
                     }
+                    else if (message == "No such username found")
+                    {
+
+                    }
                     else if (message == "Signup successful")
                     {
                         clientSocket.Receive(signature_byte);
@@ -142,7 +147,7 @@ namespace Client
                         clientSocket.Receive(signature_byte);
                     }
                     string server_pub = Encoding.Default.GetString(server_signature);
-                    if (!isCmd) { //skip
+                    if (!isCmd || message == "No username") { //skip
                                   }
                     else if (verifyWithRSA(message, 3072, server_pub, signature_byte))
                     {
@@ -176,6 +181,7 @@ namespace Client
                         connectButton.Enabled = true;
                         auth_button.Enabled = false;
                         submitButton.Enabled = false;
+                        disconnect_button.Enabled = false;
                       
                     }
 
@@ -198,24 +204,27 @@ namespace Client
             string auth_start = "AUTH:" + username;
             try
             {
+                logs.AppendText("Login button clicked. Trying to authenticate...\n");
                 clientSocket.Send(Encoding.Default.GetBytes(auth_start));
-                logs.AppendText("Auth button clicked. Trying to authenticate...\n");
-                Byte[] response = new Byte[64];
+                Byte[] response = new Byte[16];
+                clientSocket.ReceiveTimeout = 2000; // Set the receive timeout to 5 seconds
                 clientSocket.Receive(response);
                 string response_string = Encoding.Default.GetString(response);
                 response_string = response_string.Substring(0, response_string.IndexOf("\0"));
-                if (response_string == "No username")
+                if (response_string.Substring(0,11) == "No username")
                 {
                     logs.AppendText("The username is wrong! Try again\n");
                 }
                 else
                 {
                     Byte[] buffer_rand_number = new Byte[16];
-                    clientSocket.Receive(buffer_rand_number);
+                    buffer_rand_number = response;
                     string rand = Encoding.Default.GetString(buffer_rand_number);
                     Byte[] hmac_result = applyHMACwithSHA512(rand, hashed_pass_quarter);
                     clientSocket.Send(hmac_result);
                     Byte[] buffer_result_auth = new Byte[64];
+                    clientSocket.ReceiveTimeout = 2000; // Set the receive timeout to 5 seconds
+                    clientSocket.Receive(buffer_result_auth);
                     Byte[] privkey = File.ReadAllBytes("server_enc_dec_pub.txt");
                     string buffer_auth_result = Encoding.Default.GetString(buffer_result_auth); //decrypt aes 128 in cbc mode
                     Byte[] hashed_key_aes = new Byte[16];
@@ -239,7 +248,7 @@ namespace Client
             }
             catch
             {
-                logs.AppendText("The encrypted message couldn't be sent\n");
+                logs.AppendText("Authentication Failure\n");
             }
         }
 
