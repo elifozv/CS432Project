@@ -25,6 +25,7 @@ namespace Server
         
         bool terminating = false;
         bool listening = false;
+        bool connected = false;
 
         byte[] privateKey = File.ReadAllBytes("server_enc_dec_pub_prv.txt");
         byte[] signature = File.ReadAllBytes("server_sign_verify_pub_prv.txt");
@@ -57,6 +58,8 @@ namespace Server
                 serverSocket.Listen(5);
 
                 listening = true;
+                connected = true;
+                terminating = false;
                 listenButton.Enabled = false;
                 disconnect_button.Enabled = true;
                 const string connectionUri = "mongodb+srv://digdeci:6HJ!H$d5vhsMDCp@cluster0.uftj1g6.mongodb.net/?retryWrites=true&w=majority";
@@ -225,7 +228,6 @@ namespace Server
         private void ReceiveMessage(Socket newClient,MongoClient client)
         {
 
-            bool connected = true;
             int username_f_index;
             int username_length;
             int password_f_index;
@@ -507,6 +509,7 @@ namespace Server
             serverSocket.Close();
             listening = false;
             terminating = true;
+            connected = false;
             listenButton.Enabled = true;
             disconnect_button.Enabled = false;
             logs.AppendText("Server Disconnected \n");
