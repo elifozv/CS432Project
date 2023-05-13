@@ -226,15 +226,15 @@ namespace Server
         {
 
             bool connected = true;
-            int username_f_index = 0;
-            int username_length = 0;
-            int password_f_index = 0;
-            int password_length = 0;
-            int channel_f_index = 0;
-            int channel_length = 0;
-            string _username = "";
-            string _password = "";
-            string _channel = "";
+            int username_f_index;
+            int username_length;
+            int password_f_index;
+            int password_length;
+            int channel_f_index;
+            int channel_length;
+            string _username;
+            string _password="";
+            string _channel ="";
             Byte[] randomNumber = new Byte[16];
             while (!terminating && connected)
             {
@@ -247,7 +247,7 @@ namespace Server
                     byte[] buffer = new byte[384];
                     newClient.Receive(buffer);
                     string message = Encoding.Default.GetString(buffer);
-                    message = message.Substring(0, message.IndexOf("\0"));
+                    message = message.Trim('\0');
                     string privString = Encoding.Default.GetString(privateKey);
                     string server_signature = Encoding.Default.GetString(signature);
                     if (message.Substring(0, 4) == "EXIT")

@@ -23,7 +23,7 @@ namespace Client
 
         byte[] publicKey = File.ReadAllBytes("server_enc_dec_pub.txt");
         byte[] server_signature = File.ReadAllBytes("server_sign_verify_pub.txt");
-        byte[] privateKey = File.ReadAllBytes("server_enc_dec_pub_prv.txt");
+        //byte[] privateKey = File.ReadAllBytes("server_enc_dec_pub_prv.txt");
 
 
         public Form1()
@@ -112,7 +112,7 @@ namespace Client
                     clientSocket.Receive(buffer);
                     Byte[] signature_byte = new Byte[384];
                     string message = Encoding.Default.GetString(buffer);
-                    message = message.Substring(0, message.IndexOf("\0"));
+                    message = message.Trim('\0');
                     bool isCmd = true;
                     if (message == "EXIT")
                     {
