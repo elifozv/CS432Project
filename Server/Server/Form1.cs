@@ -43,15 +43,6 @@ namespace Server
             InitializeComponent();
 
             disconnect_button.Enabled = false;
-
-            /*if (!File.Exists(filePath)) // Check if the file already exists
-            {
-                // If the file doesn't exist, create it
-                using (FileStream fs = File.Create(filePath))
-                {
-                    // Leave the stream open to allow further file operations
-                }
-            }*/
         }
 
 
@@ -235,7 +226,16 @@ namespace Server
         {
 
             bool connected = true;
-
+            int username_f_index = 0;
+            int username_length = 0;
+            int password_f_index = 0;
+            int password_length = 0;
+            int channel_f_index = 0;
+            int channel_length = 0;
+            string _username = "";
+            string _password = "";
+            string _channel = "";
+            Byte[] randomNumber = new Byte[16];
             while (!terminating && connected)
             {
                 try
@@ -246,8 +246,8 @@ namespace Server
         
                     byte[] buffer = new byte[384];
                     newClient.Receive(buffer);
-
                     string message = Encoding.Default.GetString(buffer);
+                    message = message.Substring(0, message.IndexOf("\0"));
                     string privString = Encoding.Default.GetString(privateKey);
                     string server_signature = Encoding.Default.GetString(signature);
                     if (message.Substring(0, 4) == "EXIT")
@@ -256,84 +256,88 @@ namespace Server
                         newClient.Close();
                         clients.Remove(newClient);
                     }
-                    else if (message.Substring(0, 5) == "AUTH:")//Login kısmı
+                    else if (message.Substring(0, 6) == "AUTH1:")//Login kısmı
                     {
-                        message = message.Substring(0, message.IndexOf("\0"));
-                        string login_p1 = SearchUsernameInDB(credentials, message.Substring(5));
+                        string login_p1 = SearchUsernameInDB(credentials, message.Substring(6));
                         if (login_p1.Substring(0, 2) == "No") //doesnt exists the username
                         {
-                            string response = "No username";
+                            string response = "AUTH1:No username";
                             Byte[] no_username_resp = Encoding.Default.GetBytes(response);
                             newClient.Send(no_username_resp);
                         }
                         else
                         {
-                            int username_f_index = login_p1.IndexOf("username:");
-                            int username_length = "username:".Length;
-                            int password_f_index = login_p1.IndexOf("password:");
-                            int password_length = "password:".Length;
-                            int channel_f_index = login_p1.IndexOf("channel:");
-                            int channel_length = "channel:".Length;
-                            string _username = login_p1.Substring(username_f_index + username_length, (password_f_index - (username_f_index + username_length)));
-                            string _password = login_p1.Substring(password_f_index + password_length, (channel_f_index - (password_f_index + password_length)));
-                            string _channel = login_p1.Substring(channel_f_index + channel_length, (login_p1.Length - (channel_f_index + channel_length)));
+                            username_f_index = login_p1.IndexOf("username:");
+                            username_length = "username:".Length;
+                            password_f_index = login_p1.IndexOf("password:");
+                            password_length = "password:".Length;
+                            channel_f_index = login_p1.IndexOf("channel:");
+                            channel_length = "channel:".Length;
+                            _username = login_p1.Substring(username_f_index + username_length, (password_f_index - (username_f_index + username_length)));
+                            _password = login_p1.Substring(password_f_index + password_length, (channel_f_index - (password_f_index + password_length)));
+                            _channel = login_p1.Substring(channel_f_index + channel_length, (login_p1.Length - (channel_f_index + channel_length)));
 
-                            Byte[] randomNumber = GenerateRandomNumber();
-                            newClient.Send(randomNumber);
+                            randomNumber = GenerateRandomNumber();
+                            string auth1_random_s = "AUTH1:" + Encoding.Default.GetString(randomNumber);
+                            Byte[] auth1_random_b = Encoding.Default.GetBytes(auth1_random_s);
+                            newClient.Send(auth1_random_b);
                             logs.AppendText(Encoding.Default.GetString(randomNumber));
-
-                            Byte[] hashed_pass = Encoding.Default.GetBytes(_password);
-                            Byte[] hashed_pass_quarter = new Byte[16];
-                            Buffer.BlockCopy(hashed_pass, 0, hashed_pass_quarter, 0, 16);
-                            string rand_num = Encoding.Default.GetString(randomNumber);
-                            Byte[] hmac_result = applyHMACwithSHA512(rand_num, hashed_pass_quarter);
-
-                            byte[] buffer_hmac = new byte[384];
-                            newClient.ReceiveTimeout = 2000; // Set the receive timeout to  1 seconds
-                            newClient.Receive(buffer_hmac);
-                            logs.AppendText("buffer hmac recieved \n");
-                            if (hmac_result == buffer_hmac)
-                            {
-                                //ok
-                                string auth_result = "Authentication Successful \n";
-                                Byte[] hashed_key_aes = new Byte[16];
-                                Byte[] hashed_4 = new Byte[16];
-                                Buffer.BlockCopy(hashed_pass, 0, hashed_key_aes, 0, 16);
-                                Buffer.BlockCopy(hashed_pass, 16, hashed_4, 0, 16);
-                                Byte[] encrpyt_aes128 = encryptWithAES128(auth_result, hashed_key_aes, hashed_4);
-                                logs.AppendText(auth_result);
-                                newClient.Send(encrpyt_aes128);
-                            }
-                            else
-                            {
-                                //no 
-                                string auth_result = "Authentication Unsuccessful \n";
-                                Byte[] hashed_key_aes = new Byte[16];
-                                Byte[] hashed_4 = new Byte[16];
-                                Buffer.BlockCopy(hashed_pass, 0, hashed_key_aes, 0, 16);
-                                Buffer.BlockCopy(hashed_pass, 16, hashed_4, 0, 16);
-                                Byte[] encrpyt_aes128 = encryptWithAES128(auth_result, hashed_key_aes, hashed_4);
-                                logs.AppendText(auth_result);
-                                newClient.Send(encrpyt_aes128);
-                            }
-
                         }
+                    }
+                    else if (message.Substring(0, 6) == "AUTH2:") {
+                        Byte[] hashed_pass = Encoding.Default.GetBytes(_password);
+                        Byte[] hashed_pass_quarter = new Byte[16];
+                        Buffer.BlockCopy(hashed_pass, 0, hashed_pass_quarter, 0, 16);
+                        string rand_num = Encoding.Default.GetString(randomNumber);
+                        Byte[] hmac_result = applyHMACwithSHA512(rand_num, hashed_pass_quarter);
+                        string hmac_string_r = "AUTH2:" + Encoding.Default.GetString(hmac_result);
+                        string hmac_buffer_r = Encoding.Default.GetString(buffer);
+                        logs.AppendText("buffer hmac recieved \n");
+                        if (hmac_string_r == hmac_buffer_r)
+                        {
+                            //ok
+                            string auth_result = "Authentication Successful \n";
+                            Byte[] hashed_key_aes = new Byte[16];
+                            Byte[] hashed_4 = new Byte[16];
+                            Buffer.BlockCopy(hashed_pass, 0, hashed_key_aes, 0, 16);
+                            Buffer.BlockCopy(hashed_pass, 16, hashed_4, 0, 16);
+                            Byte[] encrpyt_aes128 = encryptWithAES128(auth_result, hashed_key_aes, hashed_4);
+                            logs.AppendText(auth_result);
+                            string auth2_result = "AUTH2:" + Encoding.Default.GetString(encrpyt_aes128);
+                            Byte[] auth2_result_b = Encoding.Default.GetBytes(auth2_result);
+                            newClient.Send(auth2_result_b);
+                        }
+                        else
+                        {
+                            //no 
+                            string auth_result = "Authentication Unsuccessful \n";
+                            Byte[] hashed_key_aes = new Byte[16];
+                            Byte[] hashed_4 = new Byte[16];
+                            Buffer.BlockCopy(hashed_pass, 0, hashed_key_aes, 0, 16);
+                            Buffer.BlockCopy(hashed_pass, 16, hashed_4, 0, 16);
+                            Byte[] encrpyt_aes128 = encryptWithAES128(auth_result, hashed_key_aes, hashed_4);
+                            logs.AppendText(auth_result);
+                            string auth2_result = "AUTH2:" + Encoding.Default.GetString(encrpyt_aes128);
+                            Byte[] auth2_result_b = Encoding.Default.GetBytes(auth2_result);
+                            newClient.Send(auth2_result_b);
+                        }
+
                     }
                     else
                     {
-                        // Enrollment side
-                        byte[] encrypted = decryptWithRSA(message, 3072, privString);
+                        // Enrollment side - Signup
+                        Byte[] encrypted = decryptWithRSA(message, 3072, privString);
                         string credentials_recieved = Encoding.Default.GetString(encrypted);
 
-                        int username_f_index = credentials_recieved.IndexOf("username:");
-                        int username_length = "username:".Length;
-                        int password_f_index = credentials_recieved.IndexOf("password:");
-                        int password_length = "password:".Length;
-                        int channel_f_index = credentials_recieved.IndexOf("channel:");
-                        int channel_length = "channel:".Length;
-                        string _username = credentials_recieved.Substring(username_f_index + username_length, (password_f_index - (username_f_index + username_length)));
-                        string _password = credentials_recieved.Substring(password_f_index + password_length, (channel_f_index - (password_f_index + password_length)));
-                        string _channel = credentials_recieved.Substring(channel_f_index + channel_length, (credentials_recieved.Length - (channel_f_index + channel_length)));
+                         username_f_index = credentials_recieved.IndexOf("username:");
+                         username_length = "username:".Length;
+                         password_f_index = credentials_recieved.IndexOf("password:");
+                         password_length = "password:".Length;
+                         channel_f_index = credentials_recieved.IndexOf("channel:");
+                         channel_length = "channel:".Length;
+                         _username = credentials_recieved.Substring(username_f_index + username_length, (password_f_index - (username_f_index + username_length)));
+                         _password = credentials_recieved.Substring(password_f_index + password_length, (channel_f_index - (password_f_index + password_length)));
+                         _channel = credentials_recieved.Substring(channel_f_index + channel_length, (credentials_recieved.Length - (channel_f_index + channel_length)));
 
                         string messageToSend = CreateUserForDB(credentials,_username,_password,_channel);
                         if (messageToSend.Substring(0, 18) == "Signup successful:")
@@ -349,10 +353,9 @@ namespace Server
                         newClient.Send(buffer);
                         newClient.Send(buffer_sign);
                         logs.AppendText("Sent the success message signed\n");
-                    }
-                    
-                    
+                    }  
                 }
+
                 catch
                 {
                     if (!terminating)

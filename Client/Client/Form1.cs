@@ -23,6 +23,8 @@ namespace Client
 
         byte[] publicKey = File.ReadAllBytes("server_enc_dec_pub.txt");
         byte[] server_signature = File.ReadAllBytes("server_sign_verify_pub.txt");
+        byte[] privateKey = File.ReadAllBytes("server_enc_dec_pub_prv.txt");
+
 
         public Form1()
         {
@@ -90,9 +92,8 @@ namespace Client
 
             try
             {
-                clientSocket.Send(encryptedMsg);
                 logs.AppendText("Submit button clicked. Trying to enroll...\n");
-
+                clientSocket.Send(encryptedMsg);
             }
             catch
             {
@@ -126,13 +127,48 @@ namespace Client
                         isCmd = false;
                         break;
                     }
-                    if(message == "No username")
+                    else if (message.Substring(0,6) == "AUTH1:")
                     {
-                        logs.AppendText("The username is wrong! Try again\n");
+                        isCmd = false;
+                        if (message.Substring(6, 11) == "No username")
+                        {
+                            logs.AppendText("The username is wrong! Try again\n");
+                        }
+                        else
+                        {
+                            string rand = message.Substring(6);
+                            string password = passText.Text;
+                            Byte[] hashed_pass = hashWithSHA512(password);
+                            Byte[] hashed_pass_quarter = new Byte[16];
+                            Buffer.BlockCopy(hashed_pass, 0, hashed_pass_quarter, 0, 16);
+                            Byte[] hmac_result = applyHMACwithSHA512(rand, hashed_pass_quarter);
+                            string auth1_final = "AUTH2:" + Encoding.Default.GetString(hmac_result);
+                            Byte[] auth1_final_buffer = Encoding.Default.GetBytes(auth1_final);
+                            clientSocket.Send(auth1_final_buffer);
+                        }
                     }
-                    else if (message == "No such username found")
+                    else if (message.Substring(0, 6) == "AUTH2:")
                     {
+                        isCmd = false;
+                        string buffer_auth_result = message.Substring(6);
+                        Byte[] hashed_key_aes = new Byte[16];
+                        Byte[] hashed_4 = new Byte[16];
+                        string password = passText.Text;
+                        Byte[] hashed_pass = hashWithSHA512(password);
+                        Buffer.BlockCopy(hashed_pass, 0, hashed_key_aes, 0, 16);
+                        Buffer.BlockCopy(hashed_pass, 16, hashed_4, 0, 16);
+                        Byte[] decrypt = decryptWithAES128(buffer_auth_result, hashed_key_aes, hashed_4);
+                        string buffer_decrypt_result = Encoding.Default.GetString(decrypt);
+                        if (buffer_decrypt_result == "Authentication Successful")
+                        {
+                            logs.AppendText("Authentication Successful \n");
 
+                        }
+                        else
+                        {
+                            logs.AppendText("Authentication Unsuccessful \n");
+
+                        }
                     }
                     else if (message == "Signup successful")
                     {
@@ -143,8 +179,9 @@ namespace Client
                         clientSocket.Receive(signature_byte);
                     }
                     string server_pub = Encoding.Default.GetString(server_signature);
-                    if (!isCmd || message == "No username") { //skip
-                                  }
+                    
+                    if (!isCmd) { //skip
+                    }
                     else if (verifyWithRSA(message, 3072, server_pub, signature_byte))
                     {
                         if (message == "Signup successful")
@@ -180,7 +217,6 @@ namespace Client
                         disconnect_button.Enabled = false;
                       
                     }
-
                     //clientSocket.Close();
                     connected = false;
                 }
@@ -191,68 +227,20 @@ namespace Client
 
         private void auth_button_Click(object sender, EventArgs e)
         {
-            
             string username = userText.Text;
             string password = passText.Text;
             Byte[] hashed_pass = hashWithSHA512(password);
             Byte[] hashed_pass_quarter = new Byte[16];
             Buffer.BlockCopy(hashed_pass, 0, hashed_pass_quarter, 0, 16);
-            string auth_start = "AUTH:" + username;
+            string auth_start = "AUTH1:" + username;
             try
             {
-
                 logs.AppendText("Login button clicked. Trying to authenticate...\n");
                 clientSocket.Send(Encoding.Default.GetBytes(auth_start));
-                Byte[] response = new Byte[16];
-                Byte[] response2 = new Byte[16];
-
-                //clientSocket.ReceiveTimeout = 2000; // Set the receive timeout to 5 seconds
-                clientSocket.ReceiveTimeout = 2000; // Set the receive timeout to 5 seconds
-
-                clientSocket.Receive(response);
-                logs.AppendText(Encoding.Default.GetString(response));
-                clientSocket.Receive(response2);
-                logs.AppendText(Encoding.Default.GetString(response2));
-                string response_string = Encoding.Default.GetString(response);
-                response_string = response_string.Substring(0, response_string.IndexOf("\0"));
-                if (response_string.Substring(0,11) == "No username")
-                {
-                    logs.AppendText("The username is wrong! Try again\n");
-                }
-                else
-                {
-                    Byte[] buffer_rand_number = new Byte[16];
-                    buffer_rand_number = response;
-                    string rand = Encoding.Default.GetString(buffer_rand_number);
-                    Byte[] hmac_result = applyHMACwithSHA512(rand, hashed_pass_quarter);
-                    clientSocket.Send(hmac_result);
-                    Byte[] buffer_result_auth = new Byte[64];
-                    clientSocket.ReceiveTimeout = 2000; // Set the receive timeout to 5 seconds
-                    clientSocket.Receive(buffer_result_auth);
-                    Byte[] privkey = File.ReadAllBytes("server_enc_dec_pub.txt");
-                    string buffer_auth_result = Encoding.Default.GetString(buffer_result_auth); //decrypt aes 128 in cbc mode
-                    Byte[] hashed_key_aes = new Byte[16];
-                    Byte[] hashed_4 = new Byte[16];
-                    Buffer.BlockCopy(hashed_pass, 0, hashed_key_aes, 0, 16);
-                    Buffer.BlockCopy(hashed_pass, 16, hashed_4, 0, 16);
-                    Byte[] decrypt = decryptWithAES128(buffer_auth_result, hashed_key_aes, hashed_4);
-                    string buffer_decrypt_result = Encoding.Default.GetString(decrypt);
-
-                    if (buffer_decrypt_result == "Authentication Successful")
-                    {
-                        logs.AppendText("Authentication Successful \n");
-
-                    }
-                    else
-                    {
-                        logs.AppendText("Authentication Unsuccessful \n");
-
-                    }
-                }
             }
             catch
             {
-                logs.AppendText("Authentication Failure\n");
+                logs.AppendText("Authentication Request Failure\n");
             }
         }
 
