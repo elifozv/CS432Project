@@ -294,11 +294,13 @@ namespace Server
                         Byte[] hmac_result = applyHMACwithSHA512(rand_num, hashed_pass_quarter);
                         string hmac_string_r = "AUTH2:" + Encoding.Default.GetString(hmac_result);
                         string hmac_buffer_r = Encoding.Default.GetString(buffer);
+                        hmac_buffer_r = hmac_buffer_r.Trim('\0');
+
                         logs.AppendText("buffer hmac recieved \n");
                         if (hmac_string_r == hmac_buffer_r)
                         {
                             //ok
-                            string auth_result = "Authentication Successful \n";
+                            string auth_result = "Authentication Successful";
                             Byte[] hashed_key_aes = new Byte[16];
                             Byte[] hashed_4 = new Byte[16];
                             Buffer.BlockCopy(hashed_pass, 0, hashed_key_aes, 0, 16);
@@ -312,7 +314,7 @@ namespace Server
                         else
                         {
                             //no 
-                            string auth_result = "Authentication Unsuccessful \n";
+                            string auth_result = "Authentication Unsuccessful";
                             Byte[] hashed_key_aes = new Byte[16];
                             Byte[] hashed_4 = new Byte[16];
                             Buffer.BlockCopy(hashed_pass, 0, hashed_key_aes, 0, 16);
@@ -399,7 +401,7 @@ namespace Server
             {
                 Console.WriteLine(e.Message);
             }
-
+            string r = Encoding.Default.GetString(result);
             return result;
         }
 
@@ -434,7 +436,7 @@ namespace Server
             // block size of AES is 128 bits
             aesObject.BlockSize = 128;
             // mode -> CipherMode.*
-            aesObject.Mode = CipherMode.CFB;
+            aesObject.Mode = CipherMode.CBC;
             // feedback size should be equal to block size
             aesObject.FeedbackSize = 128;
             // set the key
@@ -453,6 +455,7 @@ namespace Server
             {
                 Console.WriteLine(e.Message); // display the cause
             }
+            string r = Encoding.Default.GetString(result);
 
             return result;
         }

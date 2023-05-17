@@ -150,14 +150,14 @@ namespace Client
                     else if (message.Substring(0, 6) == "AUTH2:")
                     {
                         isCmd = false;
-                        string buffer_auth_result = message.Substring(6);
+                        message = message.Substring(6);
                         Byte[] hashed_key_aes = new Byte[16];
                         Byte[] hashed_4 = new Byte[16];
                         string password = passText.Text;
                         Byte[] hashed_pass = hashWithSHA512(password);
                         Buffer.BlockCopy(hashed_pass, 0, hashed_key_aes, 0, 16);
                         Buffer.BlockCopy(hashed_pass, 16, hashed_4, 0, 16);
-                        Byte[] decrypt = decryptWithAES128(buffer_auth_result, hashed_key_aes, hashed_4);
+                        Byte[] decrypt = decryptWithAES128(message, hashed_key_aes, hashed_4);
                         string buffer_decrypt_result = Encoding.Default.GetString(decrypt);
                         if (buffer_decrypt_result == "Authentication Successful")
                         {
@@ -292,6 +292,8 @@ namespace Client
 
             // create AES object from System.Security.Cryptography
             RijndaelManaged aesObject = new RijndaelManaged();
+            //aesObject.Padding = PaddingMode.PKCS7;
+            //aesObject.Padding = PaddingMode.Zeros;
             // since we want to use AES-128
             aesObject.KeySize = 128;
             // block size of AES is 128 bits
