@@ -306,21 +306,21 @@ namespace Server
                             Buffer.BlockCopy(hashed_pass, 0, hashed_key_aes, 0, 16);
                             Buffer.BlockCopy(hashed_pass, 16, hashed_4, 0, 16);
                             Byte[] encrpyt_aes128 = encryptWithAES128(auth_result, hashed_key_aes, hashed_4);
-                            logs.AppendText(auth_result);
+                            logs.AppendText(auth_result + "\n");
                             string auth2_result = "AUTH2:" + Encoding.Default.GetString(encrpyt_aes128);
                             Byte[] auth2_result_b = Encoding.Default.GetBytes(auth2_result);
                             newClient.Send(auth2_result_b);
                         }
                         else
-                        {
-                            //no 
+                        { 
+                            //no SORU: PASSWORD KULLANIYORUZ ANCAK CLİENT YANLIŞ GİRDİ NASIL KONTROL ETMELİYİZ?
                             string auth_result = "Authentication Unsuccessful";
                             Byte[] hashed_key_aes = new Byte[16];
                             Byte[] hashed_4 = new Byte[16];
                             Buffer.BlockCopy(hashed_pass, 0, hashed_key_aes, 0, 16);
                             Buffer.BlockCopy(hashed_pass, 16, hashed_4, 0, 16);
                             Byte[] encrpyt_aes128 = encryptWithAES128(auth_result, hashed_key_aes, hashed_4);
-                            logs.AppendText(auth_result);
+                            logs.AppendText(auth_result + "\n");
                             string auth2_result = "AUTH2:" + Encoding.Default.GetString(encrpyt_aes128);
                             Byte[] auth2_result_b = Encoding.Default.GetBytes(auth2_result);
                             newClient.Send(auth2_result_b);
