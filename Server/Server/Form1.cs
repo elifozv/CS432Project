@@ -316,7 +316,7 @@ namespace Server
                             Byte[] sign_buffer = signWithRSA(message_to_sign, 3072, server_signature);
                             newClient.Send(auth2_result_b);
                             newClient.Send(sign_buffer);
-                            logs.AppendText("Send the successful message signed");
+                            logs.AppendText("Send the successful message signed\n");
                         }
                         else
                         { 
@@ -334,7 +334,7 @@ namespace Server
                             Byte[] sign_buffer = signWithRSA(message_to_sign, 3072, server_signature);
                             newClient.Send(auth2_result_b);
                             newClient.Send(sign_buffer);
-                            logs.AppendText("Send the unsuccessful message signed");
+                            logs.AppendText("Send the unsuccessful message signed\n");
                         }
 
                     }
