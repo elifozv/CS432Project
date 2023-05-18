@@ -77,6 +77,7 @@ namespace Server
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex);
+                    logs.AppendText("Couldn't connect to the database! Maybe check your network settings on MongoDB");
                 }
                 acceptThread = new Thread(() => Accept(client));
                 acceptThread.Start();
@@ -158,7 +159,9 @@ namespace Server
                         {
                             //user found return credentials
                             string msggg = "username: " + username_recieved + "password:" + password + "channel:" + channel + "\n";
-                            logs.AppendText(msggg);
+                            logs.AppendText("Username: " + username_recieved + "\n\n");
+                            logs.AppendText("Password: " + password + "\n\n");
+                            logs.AppendText("Channel: " + channel + "\n\n");
                             return msggg;
                         }
                     }
@@ -283,7 +286,7 @@ namespace Server
                             string auth1_random_s = "AUTH1:" + Encoding.Default.GetString(randomNumber);
                             Byte[] auth1_random_b = Encoding.Default.GetBytes(auth1_random_s);
                             newClient.Send(auth1_random_b);
-                            logs.AppendText(Encoding.Default.GetString(randomNumber));
+                            logs.AppendText("Random number: " + Encoding.Default.GetString(randomNumber) + "\n\n");
                         }
                     }
                     else if (message.Substring(0, 6) == "AUTH2:") {
@@ -296,7 +299,7 @@ namespace Server
                         string hmac_buffer_r = Encoding.Default.GetString(buffer);
                         hmac_buffer_r = hmac_buffer_r.Trim('\0');
 
-                        logs.AppendText("buffer hmac recieved \n");
+                        logs.AppendText("buffer hmac recieved \n\n");
                         if (hmac_string_r == hmac_buffer_r)
                         {
                             //ok
@@ -306,10 +309,14 @@ namespace Server
                             Buffer.BlockCopy(hashed_pass, 0, hashed_key_aes, 0, 16);
                             Buffer.BlockCopy(hashed_pass, 16, hashed_4, 0, 16);
                             Byte[] encrpyt_aes128 = encryptWithAES128(auth_result, hashed_key_aes, hashed_4);
+                            string message_to_sign = Encoding.Default.GetString(encrpyt_aes128);
                             logs.AppendText(auth_result + "\n");
                             string auth2_result = "AUTH2:" + Encoding.Default.GetString(encrpyt_aes128);
                             Byte[] auth2_result_b = Encoding.Default.GetBytes(auth2_result);
+                            Byte[] sign_buffer = signWithRSA(message_to_sign, 3072, server_signature);
                             newClient.Send(auth2_result_b);
+                            newClient.Send(sign_buffer);
+                            logs.AppendText("Send the successful message signed");
                         }
                         else
                         { 
@@ -322,8 +329,12 @@ namespace Server
                             Byte[] encrpyt_aes128 = encryptWithAES128(auth_result, hashed_key_aes, hashed_4);
                             logs.AppendText(auth_result + "\n");
                             string auth2_result = "AUTH2:" + Encoding.Default.GetString(encrpyt_aes128);
+                            string message_to_sign = Encoding.Default.GetString(encrpyt_aes128);
                             Byte[] auth2_result_b = Encoding.Default.GetBytes(auth2_result);
+                            Byte[] sign_buffer = signWithRSA(message_to_sign, 3072, server_signature);
                             newClient.Send(auth2_result_b);
+                            newClient.Send(sign_buffer);
+                            logs.AppendText("Send the unsuccessful message signed");
                         }
 
                     }

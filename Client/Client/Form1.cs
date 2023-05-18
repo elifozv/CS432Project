@@ -112,6 +112,7 @@ namespace Client
                     clientSocket.Receive(buffer);
                     Byte[] signature_byte = new Byte[384];
                     string message = Encoding.Default.GetString(buffer);
+                    string server_pub = Encoding.Default.GetString(server_signature);
                     message = message.Trim('\0');
                     bool isCmd = true;
                     if (message == "EXIT")
@@ -151,23 +152,36 @@ namespace Client
                     {
                         isCmd = false;
                         message = message.Substring(6);
-                        Byte[] hashed_key_aes = new Byte[16];
-                        Byte[] hashed_4 = new Byte[16];
-                        string password = passText.Text;
-                        Byte[] hashed_pass = hashWithSHA512(password);
-                        Buffer.BlockCopy(hashed_pass, 0, hashed_key_aes, 0, 16);
-                        Buffer.BlockCopy(hashed_pass, 16, hashed_4, 0, 16);
-                        Byte[] decrypt = decryptWithAES128(message, hashed_key_aes, hashed_4);
-                        string buffer_decrypt_result = Encoding.Default.GetString(decrypt);
-                        if (buffer_decrypt_result == "Authentication Successful")
+                        clientSocket.Receive(signature_byte);
+                        if (verifyWithRSA(message,3072,server_pub,signature_byte))
                         {
-                            logs.AppendText("Authentication Successful \n");
+                            //signature verified continue with auth
+                            Byte[] hashed_key_aes = new Byte[16];
+                            Byte[] hashed_4 = new Byte[16];
+                            string password = passText.Text;
+                            Byte[] hashed_pass = hashWithSHA512(password);
+                            Buffer.BlockCopy(hashed_pass, 0, hashed_key_aes, 0, 16);
+                            Buffer.BlockCopy(hashed_pass, 16, hashed_4, 0, 16);
+                            Byte[] decrypt = decryptWithAES128(message, hashed_key_aes, hashed_4);
+                            if (decrypt == null)
+                            {
+                                //Decryption failed meaning auth unsuccessful
+                                logs.AppendText("Authentication Unsuccessful \n");
+                            }
+                            else
+                            {
+                                string buffer_decrypt_result = Encoding.Default.GetString(decrypt);
+                                if (buffer_decrypt_result == "Authentication Successful")
+                                {
+                                    logs.AppendText("Authentication Successful \n");
 
+                                }
+                            }
                         }
                         else
                         {
-                            logs.AppendText("Authentication Unsuccessful \n");
-
+                            //signature verification failed. Let client know about it.
+                            logs.AppendText("Couldn't verify the signed message\n");
                         }
                     }
                     else if (message == "Signup successful")
@@ -178,7 +192,6 @@ namespace Client
                     {
                         clientSocket.Receive(signature_byte);
                     }
-                    string server_pub = Encoding.Default.GetString(server_signature);
                     
                     if (!isCmd) { //skip
                     }
