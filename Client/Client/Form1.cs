@@ -155,6 +155,8 @@ namespace Client
                         clientSocket.Receive(signature_byte);
                         if (verifyWithRSA(message,3072,server_pub,signature_byte))
                         {
+
+
                             //signature verified continue with auth
                             Byte[] hashed_key_aes = new Byte[16];
                             Byte[] hashed_4 = new Byte[16];
@@ -163,6 +165,7 @@ namespace Client
                             Buffer.BlockCopy(hashed_pass, 0, hashed_key_aes, 0, 16);
                             Buffer.BlockCopy(hashed_pass, 16, hashed_4, 0, 16);
                             Byte[] decrypt = decryptWithAES128(message, hashed_key_aes, hashed_4);
+
                             if (decrypt == null)
                             {
                                 //Decryption failed meaning auth unsuccessful
@@ -170,6 +173,12 @@ namespace Client
                             }
                             else
                             {
+                                int lenofbuff = decrypt.Length;
+                                Byte[] channel_key = new Byte[16];
+                                Byte[] channel_4 = new Byte[16];
+                                Buffer.BlockCopy(decrypt, lenofbuff-32, hashed_key_aes, 0, 16);
+                                Buffer.BlockCopy(decrypt, lenofbuff-16, hashed_4, 0, 16);
+
                                 string buffer_decrypt_result = Encoding.Default.GetString(decrypt);
                                 if (buffer_decrypt_result == "Authentication Successful")
                                 {
