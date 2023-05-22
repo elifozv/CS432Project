@@ -612,6 +612,7 @@ namespace Server
             disconnect_button.Enabled = false;
             logs.AppendText("Server Disconnected \n");
             serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            clientsToItsSocket.Clear();
             //Environment.Exit(0);
         }
 
