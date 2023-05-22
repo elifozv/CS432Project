@@ -34,6 +34,8 @@ namespace Server
 
         Socket serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         List<Socket> clients = new List<Socket>();
+        Byte[] channel_aes_key = new Byte[16];
+        Byte[] channel_4_key = new Byte[16];
 
 
         
@@ -311,7 +313,14 @@ namespace Server
                             Byte[] encrpyt_aes128 = encryptWithAES128(auth_result, hashed_key_aes, hashed_4);
                             string message_to_sign = Encoding.Default.GetString(encrpyt_aes128);
                             logs.AppendText(auth_result + "\n");
-                            string auth2_result = "AUTH2:" + Encoding.Default.GetString(encrpyt_aes128);
+
+                            string key = Encoding.Default.GetString(channel_aes_key);
+                            string key4 = Encoding.Default.GetString(channel_4_key);
+                            Byte[] encrypted_step2_key = encryptWithAES128(key, hashed_key_aes, hashed_4);
+                            Byte[] encrypted_step2_4 = encryptWithAES128(key4, hashed_key_aes, hashed_4);
+
+
+                            string auth2_result = "AUTH2:" + Encoding.Default.GetString(encrpyt_aes128) + Encoding.Default.GetString(encrypted_step2_key) + Encoding.Default.GetString(encrypted_step2_4); ; ;
                             Byte[] auth2_result_b = Encoding.Default.GetBytes(auth2_result);
                             Byte[] sign_buffer = signWithRSA(message_to_sign, 3072, server_signature);
                             newClient.Send(auth2_result_b);
@@ -383,6 +392,23 @@ namespace Server
                     connected = false;
                 }
             }
+        }
+
+        private void IF100_Click(object sender, EventArgs e)
+        {
+            string key = text_key.Text;
+            Byte[] hashed_key = hashWithSHA512(key);
+            Byte[] hashed_key_aes = new Byte[16];
+            Byte[] hashed_4 = new Byte[16];
+            Byte[] hashed_hmac = new Byte[16];
+
+            Buffer.BlockCopy(hashed_key, 0, hashed_key_aes, 0, 16);
+            Buffer.BlockCopy(hashed_key, 16, hashed_4, 0, 16);
+            Buffer.BlockCopy(hashed_key, 32, hashed_hmac, 0, 16);
+
+            channel_aes_key = hashed_key_aes;
+            channel_4_key = hashed_4;
+
         }
 
         private void WriteCredentialsToFile(string message)
@@ -493,6 +519,19 @@ namespace Server
 
             return result;
         }
+
+        static byte[] hashWithSHA512(string input)
+        {
+            // convert input string to byte array
+            byte[] byteInput = Encoding.Default.GetBytes(input);
+            // create a hasher object from System.Security.Cryptography
+            SHA512CryptoServiceProvider sha512Hasher = new SHA512CryptoServiceProvider();
+            // hash and save the resulting byte array
+            byte[] result = sha512Hasher.ComputeHash(byteInput);
+
+            return result;
+        }
+
         private void Form1_FormClosing(object sender, System.ComponentModel.CancelEventArgs e)
         {            
          foreach (Socket i in clients)
@@ -530,5 +569,6 @@ namespace Server
             serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             //Environment.Exit(0);
         }
+
     }
 }
