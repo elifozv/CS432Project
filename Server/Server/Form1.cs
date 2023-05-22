@@ -43,6 +43,7 @@ namespace Server
         Dictionary<Socket, Client> clientsToItsSocket = new Dictionary<Socket, Client>();
         Byte[] channel_aes_key = new Byte[16];
         Byte[] channel_4_key = new Byte[16];
+        Byte[] channel_hmac_key = new Byte[16];
 
 
         
@@ -293,7 +294,9 @@ namespace Server
                             Client user = new Client();
                             user.username = _username;
                             user.password = _password;
+                            _channel = _channel.Replace("\n", "");
                             user.channel = _channel;
+                            
                             clientsToItsSocket.Add(newClient,user);
 
                             randomNumber = GenerateRandomNumber();
@@ -328,11 +331,13 @@ namespace Server
 
                             string key = Encoding.Default.GetString(channel_aes_key);
                             string key4 = Encoding.Default.GetString(channel_4_key);
+                            string key_hmac = Encoding.Default.GetString(channel_hmac_key);
                             Byte[] encrypted_step2_key = encryptWithAES128(key, hashed_key_aes, hashed_4);
                             Byte[] encrypted_step2_4 = encryptWithAES128(key4, hashed_key_aes, hashed_4);
+                            Byte[] encrypted_step2_hmac = encryptWithAES128(key_hmac, hashed_key_aes, hashed_4);
 
 
-                            string auth2_result = "AUTH2:" + Encoding.Default.GetString(encrpyt_aes128) + Encoding.Default.GetString(encrypted_step2_key) + Encoding.Default.GetString(encrypted_step2_4); ; ;
+                            string auth2_result = "AUTH2:" + Encoding.Default.GetString(encrpyt_aes128) + Encoding.Default.GetString(encrypted_step2_key) + Encoding.Default.GetString(encrypted_step2_4) + Encoding.Default.GetString(encrypted_step2_hmac);
                             Byte[] auth2_result_b = Encoding.Default.GetBytes(auth2_result);
                             Byte[] sign_buffer = signWithRSA(auth2_result.Substring(6), 3072, server_signature);
                             newClient.Send(auth2_result_b);
@@ -358,6 +363,31 @@ namespace Server
                             logs.AppendText("Send the unsuccessful message signed\n");
                         }
 
+                    }
+                    else if (message.Substring(0,4) == "MSG:")
+                    {
+                        string channeltosend = "";
+                        foreach (KeyValuePair<Socket, Client> pair in clientsToItsSocket)
+                        {
+                            Socket mysocket = pair.Key;      // Access the Socket key
+                            Client myclient = pair.Value;    // Access the Client value
+
+                            if (mysocket == newClient)
+                            {
+                                channeltosend = myclient.channel;
+                                break;
+                            }
+                        }
+                        foreach (KeyValuePair<Socket, Client> pair in clientsToItsSocket)
+                        {
+                            Socket mysocket = pair.Key;      // Access the Socket key
+                            Client myclient = pair.Value;    // Access the Client value
+
+                            if (channeltosend == myclient.channel) //mysocket != newClient &&
+                            {
+                                mysocket.Send(Encoding.Default.GetBytes(message));
+                            }
+                        }
                     }
                     else
                     {
@@ -420,6 +450,9 @@ namespace Server
 
             channel_aes_key = hashed_key_aes;
             channel_4_key = hashed_4;
+            channel_hmac_key = hashed_hmac;
+            logs.AppendText("Channel key created for IF100\n");
+
 
         }
 

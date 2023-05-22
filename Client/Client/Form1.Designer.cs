@@ -46,6 +46,9 @@ namespace Client
             this.label4 = new System.Windows.Forms.Label();
             this.auth_button = new System.Windows.Forms.Button();
             this.disconnect_button = new System.Windows.Forms.Button();
+            this.label5 = new System.Windows.Forms.Label();
+            this.msg_box = new System.Windows.Forms.TextBox();
+            this.send_msg_btn = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -62,7 +65,7 @@ namespace Client
             // 
             // submitButton
             // 
-            this.submitButton.Location = new System.Drawing.Point(38, 751);
+            this.submitButton.Location = new System.Drawing.Point(38, 718);
             this.submitButton.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.submitButton.Name = "submitButton";
             this.submitButton.Size = new System.Drawing.Size(186, 72);
@@ -108,7 +111,7 @@ namespace Client
             this.logs.Location = new System.Drawing.Point(468, 118);
             this.logs.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.logs.Name = "logs";
-            this.logs.Size = new System.Drawing.Size(579, 817);
+            this.logs.Size = new System.Drawing.Size(579, 966);
             this.logs.TabIndex = 6;
             this.logs.Text = "";
             // 
@@ -207,7 +210,7 @@ namespace Client
             // 
             // auth_button
             // 
-            this.auth_button.Location = new System.Drawing.Point(253, 751);
+            this.auth_button.Location = new System.Drawing.Point(253, 718);
             this.auth_button.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.auth_button.Name = "auth_button";
             this.auth_button.Size = new System.Drawing.Size(187, 72);
@@ -218,7 +221,7 @@ namespace Client
             // 
             // disconnect_button
             // 
-            this.disconnect_button.Location = new System.Drawing.Point(40, 851);
+            this.disconnect_button.Location = new System.Drawing.Point(40, 1012);
             this.disconnect_button.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.disconnect_button.Name = "disconnect_button";
             this.disconnect_button.Size = new System.Drawing.Size(400, 72);
@@ -227,11 +230,44 @@ namespace Client
             this.disconnect_button.UseVisualStyleBackColor = true;
             this.disconnect_button.Click += new System.EventHandler(this.disconnect_button_Click);
             // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(32, 839);
+            this.label5.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(130, 32);
+            this.label5.TabIndex = 14;
+            this.label5.Text = "Message";
+            this.label5.Click += new System.EventHandler(this.label5_Click);
+            // 
+            // msg_box
+            // 
+            this.msg_box.Location = new System.Drawing.Point(181, 839);
+            this.msg_box.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.msg_box.Name = "msg_box";
+            this.msg_box.Size = new System.Drawing.Size(259, 38);
+            this.msg_box.TabIndex = 15;
+            // 
+            // send_msg_btn
+            // 
+            this.send_msg_btn.Location = new System.Drawing.Point(178, 899);
+            this.send_msg_btn.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.send_msg_btn.Name = "send_msg_btn";
+            this.send_msg_btn.Size = new System.Drawing.Size(262, 62);
+            this.send_msg_btn.TabIndex = 16;
+            this.send_msg_btn.Text = "Send";
+            this.send_msg_btn.UseVisualStyleBackColor = true;
+            this.send_msg_btn.Click += new System.EventHandler(this.send_msg_btn_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(16F, 31F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1074, 950);
+            this.ClientSize = new System.Drawing.Size(1074, 1099);
+            this.Controls.Add(this.send_msg_btn);
+            this.Controls.Add(this.msg_box);
+            this.Controls.Add(this.label5);
             this.Controls.Add(this.disconnect_button);
             this.Controls.Add(this.auth_button);
             this.Controls.Add(this.label4);
@@ -275,5 +311,8 @@ namespace Client
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Button auth_button;
         private System.Windows.Forms.Button disconnect_button;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.TextBox msg_box;
+        private System.Windows.Forms.Button send_msg_btn;
     }
 }
