@@ -22,7 +22,13 @@ namespace Server
 {
     public partial class Form1 : Form
     {
-        
+        struct Client
+        {
+            public string username;
+            public string password;
+            public string channel;
+        }
+
         bool terminating = false;
         bool listening = false;
         bool connected = false;
@@ -34,6 +40,7 @@ namespace Server
 
         Socket serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         List<Socket> clients = new List<Socket>();
+        Dictionary<Socket, Client> clientsToItsSocket = new Dictionary<Socket, Client>();
         Byte[] channel_aes_key = new Byte[16];
         Byte[] channel_4_key = new Byte[16];
 
@@ -283,6 +290,11 @@ namespace Server
                             _username = login_p1.Substring(username_f_index + username_length, (password_f_index - (username_f_index + username_length)));
                             _password = login_p1.Substring(password_f_index + password_length, (channel_f_index - (password_f_index + password_length)));
                             _channel = login_p1.Substring(channel_f_index + channel_length, (login_p1.Length - (channel_f_index + channel_length)));
+                            Client user = new Client();
+                            user.username = _username;
+                            user.password = _password;
+                            user.channel = _channel;
+                            clientsToItsSocket.Add(newClient,user);
 
                             randomNumber = GenerateRandomNumber();
                             string auth1_random_s = "AUTH1:" + Encoding.Default.GetString(randomNumber);
