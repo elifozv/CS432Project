@@ -334,7 +334,7 @@ namespace Server
 
                             string auth2_result = "AUTH2:" + Encoding.Default.GetString(encrpyt_aes128) + Encoding.Default.GetString(encrypted_step2_key) + Encoding.Default.GetString(encrypted_step2_4); ; ;
                             Byte[] auth2_result_b = Encoding.Default.GetBytes(auth2_result);
-                            Byte[] sign_buffer = signWithRSA(message_to_sign, 3072, server_signature);
+                            Byte[] sign_buffer = signWithRSA(auth2_result.Substring(6), 3072, server_signature);
                             newClient.Send(auth2_result_b);
                             newClient.Send(sign_buffer);
                             logs.AppendText("Send the successful message signed\n");
