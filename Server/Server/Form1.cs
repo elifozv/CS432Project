@@ -243,6 +243,7 @@ namespace Server
                 return msg;
             }
         }
+
         private void ReceiveMessage(Socket newClient,MongoClient client)
         {
 
@@ -275,6 +276,7 @@ namespace Server
                         newClient.Send(Encoding.Default.GetBytes("EXIT"));
                         newClient.Close();
                         clients.Remove(newClient);
+                        clientsToItsSocket.Remove(newClient);
                     }
                     else if (message.Substring(0, 6) == "AUTH1:")//Login kısmı
                     {
@@ -301,9 +303,15 @@ namespace Server
                             user.password = _password;
                             _channel = _channel.Replace("\n", "");
                             user.channel = _channel;
-                            
-                            clientsToItsSocket.Add(newClient,user);
 
+                            if (clientsToItsSocket.ContainsKey(newClient))
+                            {
+                                // do nothing
+                            }
+                            else
+                            {
+                                clientsToItsSocket.Add(newClient, user);
+                            }
                             randomNumber = GenerateRandomNumber();
                             string auth1_random_s = "AUTH1:" + Encoding.Default.GetString(randomNumber);
                             Byte[] auth1_random_b = Encoding.Default.GetBytes(auth1_random_s);
@@ -327,11 +335,11 @@ namespace Server
                         {
                             //ok
                             string auth_result = "Authentication Successful";
-                            Byte[] hashed_key_aes = new Byte[16];
-                            Byte[] hashed_4 = new Byte[16];
-                            Buffer.BlockCopy(hashed_pass, 0, hashed_key_aes, 0, 16);
-                            Buffer.BlockCopy(hashed_pass, 16, hashed_4, 0, 16);
-                            Byte[] encrpyt_aes128 = encryptWithAES128(auth_result, hashed_key_aes, hashed_4);
+                            Byte[] hashed_key_aes_s = new Byte[16];
+                            Byte[] hashed_4_s = new Byte[16];
+                            Buffer.BlockCopy(hashed_pass, 0, hashed_key_aes_s, 0, 16);
+                            Buffer.BlockCopy(hashed_pass, 16, hashed_4_s, 0, 16);
+                            Byte[] encrpyt_aes128 = encryptWithAES128(auth_result, hashed_key_aes_s, hashed_4_s);
                             string message_to_sign = Encoding.Default.GetString(encrpyt_aes128);
                             string channeltosend = "";
                             string key = "";
@@ -366,34 +374,36 @@ namespace Server
                                 key4 = Encoding.Default.GetString(sps_channel_4_key);
                                 key_hmac = Encoding.Default.GetString(sps_channel_hmac_key);
                             }
-                            key = key.Trim('\0');
-                            key4 = key4.Trim('\0');
-                            key_hmac = key_hmac.Trim('\0');
-                            if (key == null || key == "")
+                            string key_check = key.Trim('\0');
+                            if (key_check == "")
                             {
                                 string no_key = "Channel Unavailable";
+                                Byte[] no_key_byte = Encoding.Default.GetBytes(no_key);
                                 logs.AppendText(no_key + "\n");
-                                Byte[] hashed_key_aes_c = new Byte[16];
-                                Byte[] hashed_4_c = new Byte[16];
-                                Buffer.BlockCopy(hashed_pass, 0, hashed_key_aes_c, 0, 16);
-                                Buffer.BlockCopy(hashed_pass, 16, hashed_4_c, 0, 16);
-                                Byte[] encrpyt_aes128_c = encryptWithAES128(no_key, hashed_key_aes_c, hashed_4_c);
-                                string auth2_result_c = "AUTH2:" + Encoding.Default.GetString(encrpyt_aes128_c);
-                                string message_to_sign_c = Encoding.Default.GetString(encrpyt_aes128_c);
-                                Byte[] auth2_result_b_c = Encoding.Default.GetBytes(auth2_result_c);
-                                Byte[] sign_buffer_c = signWithRSA(message_to_sign_c, 3072, server_signature);
-                                newClient.Send(auth2_result_b_c);
-                                newClient.Send(sign_buffer_c);
-                                logs.AppendText("Sent channel unavailable\n");
+                                //Byte[] hashed_key_aes_c = new Byte[16];
+                                //Byte[] hashed_4_c = new Byte[16];
+                                //Buffer.BlockCopy(hashed_pass, 0, hashed_key_aes_c, 0, 16);
+                                //Buffer.BlockCopy(hashed_pass, 16, hashed_4_c, 0, 16);
+                                //Byte[] encrpyt_aes128_c = encryptWithAES128(no_key, hashed_key_aes_c, hashed_4_c);
+                                //string auth2_result_c = "AUTH2:" + Encoding.Default.GetString(encrpyt_aes128_c);
+                                //string message_to_sign_c = Encoding.Default.GetString(encrpyt_aes128_c);
+                                //Byte[] auth2_result_b_c = Encoding.Default.GetBytes(auth2_result_c);
+                                //Byte[] sign_buffer_c = signWithRSA(message_to_sign_c, 3072, server_signature);
+                                newClient.Send(no_key_byte);
+
+                                //newClient.Send(sign_buffer_c);
+                                logs.AppendText("Sent channel unavailable \n");
                             }
                             else
                             {
                                 logs.AppendText(auth_result + "\n");
-                                Byte[] encrypted_step2_key = encryptWithAES128(key, hashed_key_aes, hashed_4);
-                                Byte[] encrypted_step2_4 = encryptWithAES128(key4, hashed_key_aes, hashed_4);
-                                Byte[] encrypted_step2_hmac = encryptWithAES128(key_hmac, hashed_key_aes, hashed_4);
+                                Byte[] encrypted_step2_key = encryptWithAES128(key, hashed_key_aes_s, hashed_4_s);
+                                Byte[] encrypted_step2_4 = encryptWithAES128(key4, hashed_key_aes_s, hashed_4_s);
+                                Byte[] encrypted_step2_hmac = encryptWithAES128(key_hmac, hashed_key_aes_s, hashed_4_s);
 
 
+                                string deneme = Encoding.Default.GetString(encrpyt_aes128) + Encoding.Default.GetString(encrypted_step2_key) + Encoding.Default.GetString(encrypted_step2_4) + Encoding.Default.GetString(encrypted_step2_hmac);
+                                Byte[] deneme_b = Encoding.Default.GetBytes(deneme);
                                 string auth2_result = "AUTH2:" + Encoding.Default.GetString(encrpyt_aes128) + Encoding.Default.GetString(encrypted_step2_key) + Encoding.Default.GetString(encrypted_step2_4) + Encoding.Default.GetString(encrypted_step2_hmac);
                                 Byte[] auth2_result_b = Encoding.Default.GetBytes(auth2_result);
                                 Byte[] sign_buffer = signWithRSA(auth2_result.Substring(6), 3072, server_signature);
@@ -405,7 +415,7 @@ namespace Server
                         }
                         else
                         { 
-                            //no SORU: PASSWORD KULLANIYORUZ ANCAK CLİENT YANLIŞ GİRDİ NASIL KONTROL ETMELİYİZ?
+                            
                             string auth_result = "Authentication Unsuccessful";
                             Byte[] hashed_key_aes = new Byte[16];
                             Byte[] hashed_4 = new Byte[16];
@@ -685,7 +695,7 @@ namespace Server
             listening = false;
             terminating = true;
             listenButton.Enabled = true;
-
+            clientsToItsSocket.Clear();
             Environment.Exit(0);
         }
 

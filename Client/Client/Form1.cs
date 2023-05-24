@@ -153,6 +153,11 @@ namespace Client
                             clientSocket.Send(auth1_final_buffer);
                         }
                     }
+                    else if (message == "Channel Unavailable")
+                    {
+                        isCmd = false;
+                        logs.AppendText("Channel Unavailable, try again... \n");
+                    }
                     else if (message.Substring(0, 6) == "AUTH2:")
                     {
                         isCmd = false;
@@ -196,16 +201,11 @@ namespace Client
 
 
                                 string buffer_decrypt_result = Encoding.Default.GetString(decrypt);
-                               string mlasmdlas =  buffer_decrypt_result.Substring(0,25);
                                 if (buffer_decrypt_result.Substring(0,25) == "Authentication Successful")
                                 {
                                     logs.AppendText("Authentication Successful \n");
                                     send_msg_btn.Enabled = true;
                                     msg_box.Enabled = true;
-                                }
-                                else if (buffer_decrypt_result.Substring(0, 19) ==  "Channel Unavailable")
-                                {
-                                    logs.AppendText("Channel Unavailable, try again... \n");
                                 }
                             }
                         }
@@ -250,8 +250,9 @@ namespace Client
                         clientSocket.Receive(signature_byte);
                     }
                     
-                    if (!isCmd) { //skip
+                    if (!isCmd) {
                     }
+
                     else if (verifyWithRSA(message, 3072, server_pub, signature_byte))
                     {
                         if (message == "Signup successful")
@@ -371,7 +372,7 @@ namespace Client
             // mode -> CipherMode.*
             aesObject.Mode = CipherMode.CBC;
             // feedback size should be equal to block size
-            // aesObject.FeedbackSize = 128;
+             aesObject.FeedbackSize = 128;
             // set the key
             aesObject.Key = key;
             // set the IV
