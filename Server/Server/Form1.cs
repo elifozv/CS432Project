@@ -41,12 +41,17 @@ namespace Server
         Socket serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         List<Socket> clients = new List<Socket>();
         Dictionary<Socket, Client> clientsToItsSocket = new Dictionary<Socket, Client>();
-        Byte[] channel_aes_key = new Byte[16];
-        Byte[] channel_4_key = new Byte[16];
-        Byte[] channel_hmac_key = new Byte[16];
+        Byte[] if_channel_aes_key = new Byte[16];
+        Byte[] if_channel_4_key = new Byte[16];
+        Byte[] if_channel_hmac_key = new Byte[16];
+        Byte[] math_channel_aes_key = new Byte[16];
+        Byte[] math_channel_4_key = new Byte[16];
+        Byte[] math_channel_hmac_key = new Byte[16];
+        Byte[] sps_channel_aes_key = new Byte[16];
+        Byte[] sps_channel_4_key = new Byte[16];
+        Byte[] sps_channel_hmac_key = new Byte[16];
 
 
-        
         public Form1()
         {
             Control.CheckForIllegalCrossThreadCalls = false;
@@ -317,6 +322,7 @@ namespace Server
                         hmac_buffer_r = hmac_buffer_r.Trim('\0');
 
                         logs.AppendText("buffer hmac recieved \n\n");
+
                         if (hmac_string_r == hmac_buffer_r)
                         {
                             //ok
@@ -327,22 +333,75 @@ namespace Server
                             Buffer.BlockCopy(hashed_pass, 16, hashed_4, 0, 16);
                             Byte[] encrpyt_aes128 = encryptWithAES128(auth_result, hashed_key_aes, hashed_4);
                             string message_to_sign = Encoding.Default.GetString(encrpyt_aes128);
-                            logs.AppendText(auth_result + "\n");
+                            string channeltosend = "";
+                            string key = "";
+                            string key4 = "";
+                            string key_hmac = "";
+                            foreach (KeyValuePair<Socket, Client> pair in clientsToItsSocket)
+                            {
+                                Socket mysocket = pair.Key;      // Access the Socket key
+                                Client myclient = pair.Value;    // Access the Client value
 
-                            string key = Encoding.Default.GetString(channel_aes_key);
-                            string key4 = Encoding.Default.GetString(channel_4_key);
-                            string key_hmac = Encoding.Default.GetString(channel_hmac_key);
-                            Byte[] encrypted_step2_key = encryptWithAES128(key, hashed_key_aes, hashed_4);
-                            Byte[] encrypted_step2_4 = encryptWithAES128(key4, hashed_key_aes, hashed_4);
-                            Byte[] encrypted_step2_hmac = encryptWithAES128(key_hmac, hashed_key_aes, hashed_4);
+                                if (mysocket == newClient)
+                                {
+                                    channeltosend = myclient.channel;
+                                    break;
+                                }
+                            }
+                            if (channeltosend == "IF100")
+                            {
+                                 key = Encoding.Default.GetString(if_channel_aes_key);
+                                 key4 = Encoding.Default.GetString(if_channel_4_key);
+                                 key_hmac = Encoding.Default.GetString(if_channel_hmac_key);
+                            }
+                            else if (channeltosend == "MATH101")
+                            {
+                                key = Encoding.Default.GetString(math_channel_aes_key);
+                                key4 = Encoding.Default.GetString(math_channel_4_key);
+                                key_hmac = Encoding.Default.GetString(math_channel_hmac_key);
+                            }
+                            else if (channeltosend == "SPS101")
+                            {
+                                key = Encoding.Default.GetString(sps_channel_aes_key);
+                                key4 = Encoding.Default.GetString(sps_channel_4_key);
+                                key_hmac = Encoding.Default.GetString(sps_channel_hmac_key);
+                            }
+                            key = key.Trim('\0');
+                            key4 = key4.Trim('\0');
+                            key_hmac = key_hmac.Trim('\0');
+                            if (key == null || key == "")
+                            {
+                                string no_key = "Channel Unavailable";
+                                logs.AppendText(no_key + "\n");
+                                Byte[] hashed_key_aes_c = new Byte[16];
+                                Byte[] hashed_4_c = new Byte[16];
+                                Buffer.BlockCopy(hashed_pass, 0, hashed_key_aes_c, 0, 16);
+                                Buffer.BlockCopy(hashed_pass, 16, hashed_4_c, 0, 16);
+                                Byte[] encrpyt_aes128_c = encryptWithAES128(no_key, hashed_key_aes_c, hashed_4_c);
+                                string auth2_result_c = "AUTH2:" + Encoding.Default.GetString(encrpyt_aes128_c);
+                                string message_to_sign_c = Encoding.Default.GetString(encrpyt_aes128_c);
+                                Byte[] auth2_result_b_c = Encoding.Default.GetBytes(auth2_result_c);
+                                Byte[] sign_buffer_c = signWithRSA(message_to_sign_c, 3072, server_signature);
+                                newClient.Send(auth2_result_b_c);
+                                newClient.Send(sign_buffer_c);
+                                logs.AppendText("Sent channel unavailable\n");
+                            }
+                            else
+                            {
+                                logs.AppendText(auth_result + "\n");
+                                Byte[] encrypted_step2_key = encryptWithAES128(key, hashed_key_aes, hashed_4);
+                                Byte[] encrypted_step2_4 = encryptWithAES128(key4, hashed_key_aes, hashed_4);
+                                Byte[] encrypted_step2_hmac = encryptWithAES128(key_hmac, hashed_key_aes, hashed_4);
 
 
-                            string auth2_result = "AUTH2:" + Encoding.Default.GetString(encrpyt_aes128) + Encoding.Default.GetString(encrypted_step2_key) + Encoding.Default.GetString(encrypted_step2_4) + Encoding.Default.GetString(encrypted_step2_hmac);
-                            Byte[] auth2_result_b = Encoding.Default.GetBytes(auth2_result);
-                            Byte[] sign_buffer = signWithRSA(auth2_result.Substring(6), 3072, server_signature);
-                            newClient.Send(auth2_result_b);
-                            newClient.Send(sign_buffer);
-                            logs.AppendText("Send the successful message signed\n");
+                                string auth2_result = "AUTH2:" + Encoding.Default.GetString(encrpyt_aes128) + Encoding.Default.GetString(encrypted_step2_key) + Encoding.Default.GetString(encrypted_step2_4) + Encoding.Default.GetString(encrypted_step2_hmac);
+                                Byte[] auth2_result_b = Encoding.Default.GetBytes(auth2_result);
+                                Byte[] sign_buffer = signWithRSA(auth2_result.Substring(6), 3072, server_signature);
+                                newClient.Send(auth2_result_b);
+                                newClient.Send(sign_buffer);
+                                logs.AppendText("Send the successful message signed\n");
+                            }
+
                         }
                         else
                         { 
@@ -448,13 +507,49 @@ namespace Server
             Buffer.BlockCopy(hashed_key, 16, hashed_4, 0, 16);
             Buffer.BlockCopy(hashed_key, 32, hashed_hmac, 0, 16);
 
-            channel_aes_key = hashed_key_aes;
-            channel_4_key = hashed_4;
-            channel_hmac_key = hashed_hmac;
+            if_channel_aes_key = hashed_key_aes;
+            if_channel_4_key = hashed_4;
+            if_channel_hmac_key = hashed_hmac;
             logs.AppendText("Channel key created for IF100\n");
 
-
         }
+
+        private void MATH101_Click(object sender, EventArgs e)
+        {
+            string key = text_key.Text;
+            Byte[] hashed_key = hashWithSHA512(key);
+            Byte[] hashed_key_aes = new Byte[16];
+            Byte[] hashed_4 = new Byte[16];
+            Byte[] hashed_hmac = new Byte[16];
+
+            Buffer.BlockCopy(hashed_key, 0, hashed_key_aes, 0, 16);
+            Buffer.BlockCopy(hashed_key, 16, hashed_4, 0, 16);
+            Buffer.BlockCopy(hashed_key, 32, hashed_hmac, 0, 16);
+
+            math_channel_aes_key = hashed_key_aes;
+            math_channel_4_key = hashed_4;
+            math_channel_hmac_key = hashed_hmac;
+            logs.AppendText("Channel key created for MATH101\n");
+        }
+
+        private void SPS101_Click(object sender, EventArgs e)
+        {
+            string key = text_key.Text;
+            Byte[] hashed_key = hashWithSHA512(key);
+            Byte[] hashed_key_aes = new Byte[16];
+            Byte[] hashed_4 = new Byte[16];
+            Byte[] hashed_hmac = new Byte[16];
+
+            Buffer.BlockCopy(hashed_key, 0, hashed_key_aes, 0, 16);
+            Buffer.BlockCopy(hashed_key, 16, hashed_4, 0, 16);
+            Buffer.BlockCopy(hashed_key, 32, hashed_hmac, 0, 16);
+
+            sps_channel_aes_key = hashed_key_aes;
+            sps_channel_4_key = hashed_4;
+            sps_channel_hmac_key = hashed_hmac;
+            logs.AppendText("Channel key created for SPS101\n");
+        }
+
 
         private void WriteCredentialsToFile(string message)
         {

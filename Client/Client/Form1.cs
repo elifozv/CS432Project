@@ -169,7 +169,7 @@ namespace Client
                             Byte[] hashed_pass = hashWithSHA512(password);
                             Buffer.BlockCopy(hashed_pass, 0, hashed_key_aes, 0, 16);
                             Buffer.BlockCopy(hashed_pass, 16, hashed_4, 0, 16);
-                            Byte[] decrypt = decryptWithAES128(message, hashed_key_aes, hashed_4);
+                            Byte[] decrypt = decryptWithAES128(message, hashed_key_aes, hashed_4); //burda sorun var
 
                             if (decrypt == null)
                             {
@@ -178,6 +178,7 @@ namespace Client
                             }
                             else
                             {
+
                                 int lenofbuff = decrypt.Length;
                                 Byte[] channel_key_d = new Byte[16];
                                 Byte[] channel_4_d = new Byte[16];
@@ -201,6 +202,10 @@ namespace Client
                                     logs.AppendText("Authentication Successful \n");
                                     send_msg_btn.Enabled = true;
                                     msg_box.Enabled = true;
+                                }
+                                else if (buffer_decrypt_result.Substring(0, 19) ==  "Channel Unavailable")
+                                {
+                                    logs.AppendText("Channel Unavailable, try again... \n");
                                 }
                             }
                         }

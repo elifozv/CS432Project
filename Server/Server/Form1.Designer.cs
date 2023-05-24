@@ -148,6 +148,7 @@ namespace Server
             this.MATH101.TabIndex = 10;
             this.MATH101.Text = "MATH101";
             this.MATH101.UseVisualStyleBackColor = true;
+            this.MATH101.Click += new System.EventHandler(this.MATH101_Click);
             // 
             // SPS101
             // 
@@ -158,6 +159,7 @@ namespace Server
             this.SPS101.TabIndex = 11;
             this.SPS101.Text = "SPS101";
             this.SPS101.UseVisualStyleBackColor = true;
+            this.SPS101.Click += new System.EventHandler(this.SPS101_Click);
             // 
             // Form1
             // 
