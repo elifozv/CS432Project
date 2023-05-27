@@ -128,7 +128,8 @@ namespace Client
                         disconnect_button.Enabled = false;
                         submitButton.Enabled = false;
                         auth_button.Enabled = false;
-                        logs.AppendText("Client Disconnected\n");
+                        logs.AppendText("Server closed, client Disconnected\n");
+                        clientSocket.Close();
                         //Environment.Exit(0);
                         isCmd = false;
                         break;
@@ -509,7 +510,8 @@ namespace Client
             submitButton.Enabled = false;
             send_msg_btn.Enabled = false;
             msg_box.Enabled = false;
-
+            logs.AppendText("Client Disconnected\n");
+            clientSocket.Close();
         }
 
         private void label5_Click(object sender, EventArgs e)
