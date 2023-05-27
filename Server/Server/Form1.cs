@@ -265,6 +265,7 @@ namespace Server
 
         
                     byte[] buffer = new byte[384];
+                    
                     newClient.Receive(buffer);
                     string message = Encoding.Default.GetString(buffer);
                     message = message.Trim('\0');
@@ -487,11 +488,11 @@ namespace Server
                     if (!terminating)
                     {
                         logs.AppendText("A client is disconnected. \n");
-                    }
+                         newClient = serverSocket.Accept();                    }
 
-                    newClient.Close();
-                    clients.Remove(newClient);
-                    connected = false;
+                    //newClient.Close();
+                    //clients.Remove(newClient);
+                    //connected = false;
                 }
             }
         }
