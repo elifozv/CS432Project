@@ -308,7 +308,7 @@ namespace Server
 
                             if (clientsToItsSocket.ContainsKey(newClient))
                             {
-                                // do nothing
+                                clientsToItsSocket[newClient] = user;
                             }
                             else
                             {
@@ -449,6 +449,7 @@ namespace Server
                                 break;
                             }
                         }
+                        logs.AppendText("Message broadcasted in:" + channeltosend + "\n");
                         foreach (KeyValuePair<Socket, Client> pair in clientsToItsSocket)
                         {
                             Socket mysocket = pair.Key;      // Access the Socket key
@@ -710,7 +711,15 @@ namespace Server
                 i.Close(); //closing all clients before stoping
             }
             clients.Clear();
-
+            if_channel_aes_key = new Byte[16];
+            if_channel_4_key = new Byte[16];
+            if_channel_hmac_key = new Byte[16];
+            math_channel_aes_key = new Byte[16];
+            math_channel_4_key = new Byte[16];
+            math_channel_hmac_key = new Byte[16];
+            sps_channel_aes_key = new Byte[16];
+            sps_channel_4_key = new Byte[16];
+            sps_channel_hmac_key = new Byte[16];
             serverSocket.Close();
             listening = false;
             terminating = true;
